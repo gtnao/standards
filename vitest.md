@@ -13,6 +13,7 @@ export default defineConfig({
     environment: "node",
     globals: false,
     include: ["src/**/*.test.ts"],
+    passWithNoTests: true,
   },
 });
 ```
@@ -39,7 +40,7 @@ pnpm add -D vitest
 ```
 
 `test`は一度実行して終了する。変更のたびに再実行したいときだけ`test:watch`を使う。
-通常のテスト実行では型チェックをしないため、CIでは`typecheck`・`test`・`lint`・`build`をそれぞれ実行する。
+通常のテスト実行では型チェックをしないため、CIでは`typecheck`・`test`・`lint`・`build`をそれぞれ実行する。具体例は[GitHub ActionsのCI初期設定](github-actions.md)を参照。
 
 生成物をGitに含めないよう、`.gitignore`に`.vitest/`を追加する。
 
@@ -50,8 +51,10 @@ pnpm add -D vitest
 | `environment: "node"` | Node.js向けのテストであることを明示する。既定値と同じ |
 | `globals: false` | `test`・`expect`・`vi`などを必要なファイルでimportする方針。既定値と同じ |
 | `include` | `src`内の`*.test.ts`に統一する。生成先の`dist`を探索対象にせず、テストの命名・配置も明確にする |
+| `passWithNoTests: true` | テスト未作成の初期段階でもCIを通せるよう、テスト0件を成功扱いにする |
 
 設定ファイルなしでもVitestは動くが、実行環境とテストの書き方・配置を明示しておく。
+`passWithNoTests`は探索設定の誤りで0件になった場合も成功するため、テストの追加後は実行件数も確認する。
 
 `globals: false`なら、テストAPIの出所がコードから分かり、通常のimportと同じように補完・型チェックできる。
 `tsconfig.json`の`types`に`vitest/globals`を追加する必要もなく、本番コードにテスト用のグローバル型を持ち込まずに済む。
@@ -68,11 +71,11 @@ src/
 ```
 
 ユニットテストは対象コードと一緒に見つけやすく、変更・移動もしやすい配置を選ぶ。
-Vitest公式の入門例も対象コードとテストを並べている。`tests/`への分離も有効な選択肢だが、ビルド設定を維持するためだけに配置を決めない。
+Vitest公式の入門例も対象コードとテストを並べている。
 複数の機能にまたがる結合テスト・E2Eテストが必要になれば、`tests/`などへの分離を検討する。
 
 テスト専用のヘルパーは`__tests__/`に置き、本番コードと区別する。
-`*.spec.ts`やルートの`tests/`を使う場合は、Vitestの探索範囲・型チェック・ビルド除外・後述のLintを合わせて変更する。
+`*.spec.ts`やルートの`tests/`を使う場合は、Vitestの探索範囲・ビルド除外・後述のLintも配置に合わせる。型チェックは後述の設定でプロジェクト全体を対象にする。
 
 ```ts
 // src/sum.test.ts
@@ -180,7 +183,6 @@ test("2つの数を足す", () => {
 | カバレッジ | 計測対象・目標を決める段階で追加する。その際はテスト・ヘルパーを計測対象から除外する |
 | `clearMocks`・`mockReset`・`restoreMocks` | 履歴・実装・spyの復元で役割が異なる。モックを使う際に後始末の方針を決める |
 | `pool`・並列数・タイムアウト | まず既定値を使い、実際の制約に合わせて変更する |
-| `passWithNoTests: true` | テストの配置・探索設定の誤りで0件になったときに、成功扱いにしない |
 | Vitestの`typecheck` | 通常のコードとテストの型チェックは`tsc --noEmit`にまとめる |
 
 ## 参考
@@ -189,6 +191,7 @@ test("2つの数を足す", () => {
 - [Vitest：設定ファイル](https://vitest.dev/config/)
 - [Vitest：globals](https://vitest.dev/config/globals)
 - [Vitest：include](https://vitest.dev/config/include)
+- [Vitest：passWithNoTests](https://vitest.dev/config/passwithnotests)
 - [Vitest：型テストと通常のテスト実行](https://vitest.dev/guide/testing-types)
 - [TypeScript：TSConfigリファレンス](https://www.typescriptlang.org/tsconfig/)
 - [Nest公式スターター：ビルド用tsconfig](https://github.com/nestjs/typescript-starter/blob/master/tsconfig.build.json)
