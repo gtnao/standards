@@ -1,6 +1,6 @@
 # tsconfig.jsonの初期設定
 
-新規の非公開・単独プロジェクトで、Node.js 24・TypeScript 6系を使う場合の推奨例。
+新規の非公開・単独プロジェクトで、Node.js 24・TypeScript 7系を使う場合の推奨例。設定例はTypeScript 6系でも利用できる。
 バンドラーは使わず、開発はtsx、型チェック・ビルドはtsc、本番実行はNode.jsとする。
 `package.json`には`"type": "module"`を設定し、ソースを`src/`に置く。
 
@@ -63,10 +63,11 @@ tsconfigは本番のNode.jsに合わせ、CIなどでビルド後の実行も確
 
 ## 設定を明示・省略する方針
 
-**プロジェクトの品質・安全性に関する方針は明示し、他の設定から自動的に決まる付随設定は省略する。**
+**プロジェクトの品質・安全性に関する方針は明示し、他の設定から自動的に決まる付随設定や、常に有効な機能の指定は省略する。**
 
 - `strict: true`：厳格な型チェックを採用する方針なので、既定値と同じでも明示する。
-- `moduleResolution`・`esModuleInterop`：`module: "NodeNext"`から決まるため省略する。
+- `moduleResolution`：`module: "NodeNext"`から決まるため省略する。
+- `esModuleInterop`：TypeScript 6以降では対応する相互運用の挙動が常に有効なので省略する。
 
 環境・入出力・検証の省略など、プロジェクトとして判断した内容も明示する。
 
@@ -76,6 +77,7 @@ tsconfigは本番のNode.jsに合わせ、CIなどでビルド後の実行も確
 
 `NodeNext`は、Node.jsのモジュール規則に合わせて、読み込み先の解決・検証・JavaScriptの出力を行う指定。
 `package.json`の`"type": "module"`と組み合わせることで、通常の`.ts`をESMとして扱う。
+`NodeNext`はTypeScriptの更新に伴って追従する規則も変わるため、Node.js 24専用の固定モードではない。コンパイラー更新時も本番のNode.jsで動作を確認する。
 
 今回の相対importは、`.ts`内でも出力後の拡張子で書く。
 
@@ -104,7 +106,7 @@ Node.js 24向けの基準としてES2024を選ぶ。`@tsconfig/node24`もES2024�
 `["node"]`で`@types/node`を読み込み、`process`やNode.js組み込みモジュールの型を使えるようにする。
 この指定だけで型パッケージがインストールされるわけではないため、`@types/node`の導入も必要。
 
-TypeScript 6では`types`の既定値が空配列になっている。古い設定例のように、インストールしただけで自動的に読み込まれるとは考えない。
+TypeScript 6以降では`types`の既定値が空配列になっている。古い設定例のように、インストールしただけで自動的に読み込まれるとは考えない。
 通常のimport先の型をすべて列挙する項目ではない。
 
 ### rootDir・outDir・include
@@ -116,7 +118,7 @@ TypeScript 6では`types`の既定値が空配列になっている。古い設�
 | `include: ["src/**/*.ts"]` | コンパイル対象の探索範囲を`src`内の`.ts`にする |
 
 この組み合わせで、`src/index.ts`は`dist/index.js`になる。
-TypeScript 6では`rootDir`の既定値がtsconfigのあるディレクトリなので、`src`を明示する。
+TypeScript 6以降では`rootDir`の既定値がtsconfigのあるディレクトリなので、`src`を明示する。
 
 `rootDir`は対象ファイルを選ぶ設定ではない。また、`include`の外でもimportされたファイルは対象になる。
 テストや開発用スクリプトを`src`の外に置く場合、それらの型チェック用設定は別途用意する。
@@ -124,7 +126,7 @@ TypeScript 6では`rootDir`の既定値がtsconfigのあるディレクトリな
 ### strict
 
 暗黙の`any`や`null`・`undefined`の扱いなど、基本となる厳格な型チェックをまとめて有効にする。
-TypeScript 6では既定値も`true`だが、プロジェクトの方針として明示する。
+TypeScript 6以降では既定値も`true`だが、プロジェクトの方針として明示する。
 
 次の2項目は`strict`に含まれないため、追加で有効にする。
 
@@ -196,7 +198,7 @@ Node.jsでは`--enable-source-maps`を付けると、スタックトレースを
 | 項目 | 省略する理由 |
 | --- | --- |
 | `moduleResolution` | `module: "NodeNext"`から決まる |
-| `esModuleInterop` | `NodeNext`で有効になる |
+| `esModuleInterop` | TypeScript 6以降では対応する挙動が常に有効 |
 | `isolatedModules` | 採用した`verbatimModuleSyntax`により有効になるため、重複指定しない |
 | `noEmit` | 同じ設定でビルドも行う。型チェックだけのときはscripts側で`tsc --noEmit`を使う |
 | `declaration`・`declarationMap` | 非公開アプリなので、配布用の型定義を生成する必要がない |
@@ -207,6 +209,7 @@ Node.jsでは`--enable-source-maps`を付けると、スタックトレースを
 
 ## 参考
 
+- [TypeScript：現行版の導入](https://www.typescriptlang.org/download/)
 - [TypeScript：TSConfigリファレンス](https://www.typescriptlang.org/tsconfig/)
 - [TypeScript：Node.js・tsx向けのモジュール設定](https://www.typescriptlang.org/docs/handbook/modules/guides/choosing-compiler-options.html)
 - [TypeScript 6.0：既定値の変更](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-6-0.html)

@@ -1,6 +1,6 @@
 # package.jsonの初期設定
 
-新規の非公開プロジェクトで、pnpmとNode.jsを使う場合の推奨例。
+新規の非公開プロジェクトで、pnpm 12とNode.js 24を使う場合の推奨例。
 バージョン番号は設定例であり、導入時に採用するバージョンへ置き換える。
 
 ```json
@@ -47,7 +47,7 @@
 依存パッケージはそれぞれの設定に従うため、自分の`type`で依存先の方式まで変わることはない。
 
 Node.jsのESMでは、相対importに`./foo.js`のように拡張子を書く。ブラウザーと同様に明示されたパスで読み込むためで、CommonJSやバンドラーのような拡張子・`index.js`の補完は行わない。
-`type`はコードを変換する設定ではなく、TypeScriptの変換設定とも別のもの。
+`type`はコードを変換する設定ではない。TypeScriptの`NodeNext`などもこの指定を参照するので、tsconfigとは役割が異なるが無関係ではない。
 
 ### packageManager
 
@@ -67,6 +67,7 @@ pnpm 11以降では`devEngines.packageManager`でも指定できるが、完全�
 
 この例では、`pnpm install`時に指定範囲のNode.jsを解決・取得し、確定したバージョンとチェックサムを`pnpm-lock.yaml`に保存する。
 `pnpm run`のスクリプトは、そのNode.jsを使う。lockfileをコミットして、開発者間やCIでも使用版を揃える。
+本番でpnpmを経由せず生成済みJavaScriptだけを実行する場合は、本番環境のNode.jsも別途揃える。
 
 | 項目 | 意味 |
 | --- | --- |
