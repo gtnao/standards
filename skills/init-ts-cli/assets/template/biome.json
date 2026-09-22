@@ -1,0 +1,47 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.5.13/schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "formatter": {
+    "indentStyle": "space"
+  },
+  "linter": {
+    "rules": {
+      "preset": "recommended"
+    }
+  },
+  "overrides": [
+    {
+      "includes": [
+        "src/**",
+        "!src/**/*.test.ts",
+        "!src/**/__tests__/**"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "vitest",
+                      "vitest/**",
+                      "**/*.test.*",
+                      "**/__tests__/**"
+                    ],
+                    "message": "Do not import test code into production code."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

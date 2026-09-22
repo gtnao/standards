@@ -1,0 +1,23 @@
+{
+  "name": "__PROJECT_NAME__",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.0.0",
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "version": "^24.4.0",
+      "onFail": "download"
+    }
+  },
+  "scripts": {
+    "dev": "tsx --env-file-if-exists=.env src/entrypoints/cli/index.ts",
+    "start": "node --enable-source-maps dist/entrypoints/cli/index.js",
+    "lint": "biome check --error-on-warnings .",
+    "lint:fix": "biome check --write --error-on-warnings .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "build": "tsc -p tsconfig.build.json"
+  }
+}
