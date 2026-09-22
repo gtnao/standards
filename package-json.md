@@ -81,16 +81,8 @@ pnpm 11以降では`devEngines.packageManager`でも指定できるが、完全�
 
 ## 併せて設定するもの
 
-`pnpm-workspace.yaml`に次を記載する。単独プロジェクトでもpnpmの設定ファイルとして使える。
-
-```yaml
-engineStrict: true
-```
-
-依存パッケージが要求するNode.jsのバージョンに合わない場合、警告で済ませずインストールをエラーにする。
-対応外の依存を早期に検出できるため採用する。ただし、実際には動作しても依存先の宣言が合わなければ止まる。
-
-これは依存パッケージ自身のバージョンを固定する設定ではなく、そのパッケージの`engines.node`とNode.jsの適合性を検証する設定。
+依存パッケージ側の`engines.node`も検証するため、`pnpm-workspace.yaml`で`engineStrict: true`を指定する。自分の`engines`を省略していても有効。
+詳しい挙動やその他の推奨設定は、[pnpm-workspace.yamlの初期設定](pnpm-workspace.md)を参照。
 
 ## 初期設定で入れない項目
 
@@ -106,8 +98,7 @@ engineStrict: true
 `engines.node`は「対応するNode.jsの条件」、`devEngines.runtime`は「実際に使うNode.js」の指定。
 例えば、対応条件もNode 24系と明示したければ、`"engines": { "node": "24.x" }`を追加できる。
 
-pnpmのインストール時には、自分のプロジェクトの`engines.node`との不一致は`engineStrict`に関係なくエラーになる。
-`engineStrict: true`で変わるのは、依存パッケージ側の不一致もエラーにする点。自分の`engines`を省略していても、この設定には意味がある。
+pnpmのインストール時には、自分のプロジェクトの`engines.node`との不一致はエラーになる。
 
 ## 参考
 
