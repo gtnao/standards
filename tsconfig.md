@@ -1,6 +1,6 @@
 # tsconfig.jsonの初期設定
 
-新規の非公開・単独プロジェクトで、Node.js 24・TypeScript 7系を使う場合の推奨例。設定例はTypeScript 6系でも利用できる。
+Node.js 24で実行するアプリの設定例。TypeScript 7系を使い、設定例は6系でも利用できる。
 バンドラーは使わず、開発はtsx、型チェック・ビルドはtsc、本番実行はNode.jsとする。
 `package.json`には`"type": "module"`を設定し、ソースを`src/`に置く。
 
@@ -201,7 +201,7 @@ Node.jsでは`--enable-source-maps`を付けると、スタックトレースを
 | `esModuleInterop` | TypeScript 6以降では対応する挙動が常に有効 |
 | `isolatedModules` | 採用した`verbatimModuleSyntax`により有効になるため、重複指定しない |
 | `noEmit` | 同じ設定でビルドも行う。型チェックだけのときはscripts側で`tsc --noEmit`を使う |
-| `declaration`・`declarationMap` | 非公開アプリなので、配布用の型定義を生成する必要がない |
+| `declaration`・`declarationMap` | Node.jsで実行するアプリなので、他のコードから利用するための型定義を生成する必要がない |
 | `allowImportingTsExtensions`・`rewriteRelativeImportExtensions` | 相対importを出力後の`.js`で書く方針なので不要 |
 | `paths` | 今回はパスエイリアスを設けない。tscが出力先のimportを書き換えてくれる設定でもない |
 | `resolveJsonModule`・`jsx`・デコレーター関連 | 実際にその機能を使う場合に追加する |
