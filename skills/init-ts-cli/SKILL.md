@@ -25,11 +25,25 @@ Keep `.env.example` empty until actual variables are needed. Install Zod, but in
 
 Run commands from the generated project. These steps download packages and tools and may write to package-manager caches outside the target. Respect the user's filesystem restrictions; if those writes are prohibited, leave the installation steps unexecuted and report that limitation.
 
-The template pins the agreed pnpm, Biome, aqua registry, CLI tools, and Action versions. Preserve them unless an update is requested or compatibility requires one. Node.js stays on 24.x. Resolve the remaining dependencies under the template's seven-day release-age and trust restrictions, saving exact versions:
+### Resolve current versions
+
+On every invocation, check official release information and package metadata before installing. Template versions are examples, not the versions to preserve for new projects. Select the newest compatible stable releases published at least seven days ago; exclude prereleases. Respect any version constraints explicitly requested by the user.
+
+- Node.js: choose the current supported LTS line that meets the waiting period and tool compatibility requirements. Set `devEngines.runtime.version` to a caret range starting at the selected release and match the major of `@types/node`. The lockfile records the resolved runtime.
+- pnpm: update `packageManager` to the selected exact version. Check that it supports the runtime management and security settings in the template.
+- npm dependencies: resolve citty, Zod, TypeScript, tsx, Biome, Vitest, and `@types/node` under the release-age and trust restrictions. Save exact versions and match Biome's `$schema` to its installed version.
+- aqua: check the official registry, Lefthook, and pinact releases and update their exact versions in `aqua.yaml`. pnpm's waiting-period setting does not cover these releases.
+- GitHub Actions: check current stable releases and compatibility, then resolve their tags to full commit SHAs with `aqua exec -- pinact run --update --min-age 7`. Review major-version changes and update workflow inputs when needed. Keep the runner on an explicit supported Ubuntu version, not `ubuntu-latest`.
+
+Check migration notes when a selected major differs from the template. Adjust affected configuration rather than only replacing version strings. Keep the agreed architecture and security policies. If current release information cannot be verified, report the unresolved versions; do not silently use template versions and describe them as current.
+
+### Install
+
+Use the verified versions in these commands, replacing each placeholder with the selected exact version:
 
 ```sh
-pnpm add -E citty zod
-pnpm add -D -E typescript@7 tsx @types/node@24 @biomejs/biome@2.5.13 vitest
+pnpm add -E citty@<version> zod@<version>
+pnpm add -D -E typescript@<version> tsx@<version> @types/node@<version> @biomejs/biome@<version> vitest@<version>
 ```
 
 Review blocked dependency install scripts before adding `allowBuilds` entries. For example, inspect the resolved esbuild package and its install script before permitting its build. Do not disable `strictDepBuilds`, release-age checks, or trust checks to make installation succeed. Retry after the specific build decision; stop and report unresolved failures rather than weakening the policy. Keep `pnpm-lock.yaml` in the generated project.
@@ -41,7 +55,7 @@ aqua install
 aqua exec -- lefthook install
 ```
 
-Keep Lefthook limited to lint and type checking. Use `aqua exec -- pinact run --min-age 7` when changing Action references; pinact is not a CI check. Do not create GitHub repositories, change remote rulesets, commit, or push unless requested.
+Keep Lefthook limited to lint and type checking. Resolve and review the Action references as described above after installing pinact; pinact is not a CI check. Do not create GitHub repositories, change remote rulesets, commit, or push unless requested.
 
 ## Verify
 
