@@ -127,7 +127,7 @@ Rspackは実験的な連携のため、初期設定では選ばない。
 pnpm 11以降を使った生成では、`allowBuilds`に`sharp: false`と`unrs-resolver: false`が入る。
 パッケージ自体を無効にする指定ではなく、インストールスクリプトを実行しない指定。内容を確認して引き継ぎ、他の依存も必要性を確認して個別に判断する。
 
-TypeScriptはNext.jsの対応を確認して採用版を選び、生成されたtsconfigを土台にする。
+TypeScriptはNext.jsの対応を確認して採用版を選び、[生成されたtsconfigを土台に調整する](nextjs-typescript.md)。
 [Node.js CLI向けの設定](tsconfig.md)で上書きしない。Next.jsではバンドラーによる解決・DOM型・JSX・Next.jsの型生成が必要で、`noEmit: true`にも役割がある。
 
 `.gitignore`にはNext.jsの生成物の除外を残し、[環境変数の方針](gitignore.md)に合わせて`!.env.example`を追加する。
