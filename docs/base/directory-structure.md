@@ -1,34 +1,26 @@
-# src以下のディレクトリ設計
+# ディレクトリ設計の共通方針
 
-Node.jsプログラムでは、実行の入口・処理の手順・外部機能との接続を分ける。
+実行の入口・処理の手順・外部機能との接続を分ける。
+具体的な配置は実行環境に合わせ、以下の責務と依存関係を保つ。
 
-```text
-src/
-├── entrypoints/
-├── usecases/
-├── domain/
-├── ports/
-├── adapters/
-└── lib/
-```
-
-| ディレクトリ | 役割 |
+| 役割 | 責務 |
 | --- | --- |
-| `entrypoints` | 入力と設定を受け取り、依存を組み立て、処理を呼び出して結果を出力する |
+| 実行の入口 | 入力と設定を受け取り、依存を組み立て、処理を呼び出して結果を返す |
 | `usecases` | 一つの目的を達成するための処理手順を組み立てる |
 | `domain` | アプリが扱う概念と、それに関する型・ルール・処理を置く |
 | `ports` | usecaseが利用する外部機能のインターフェースを定義する |
 | `adapters` | portを満たす具体的な実装を置く |
 | `lib` | アプリ固有の意味を持たない汎用処理を置く |
 
-各層の中は、規模や処理のまとまりに応じてディレクトリを分ける。分割の粒度は実装時に判断し、分割後も層同士の依存ルールを維持する。
-Next.jsなどフレームワーク固有の構成が絡む場合は、役割分担を保ちつつ配置を調整する。
+各層の中は、規模や処理のまとまりに応じて分割する。粒度は実装時に判断し、依存ルールを維持する。
+Node.jsで直接実行する場合は[CLIの配置](../cli/directory-structure.md)に従う。
+Next.jsのapp・UIの配置は[今後整理する](../nextjs/README.md#今後整理するもの)。
 
 ## 依存関係
 
 | 参照する側 | 参照できる層 |
 | --- | --- |
-| `entrypoints` | usecases・adapters・ports・domain・lib |
+| 実行の入口 | usecases・adapters・ports・domain・lib |
 | `usecases` | ports・domain・lib |
 | `adapters` | ports・domain・lib |
 | `ports` | domain・lib |
@@ -39,87 +31,8 @@ Next.jsなどフレームワーク固有の構成が絡む場合は、役割分�
 標準機能や外部ライブラリの利用は、各層の責務に合わせて判断する。
 
 型も責務に合う場所に置く。例えば、外部機能の契約はports、adapterの生成設定はadaptersに定義する。
-entrypointは両方を利用できるが、usecaseがadapterの設定型を参照する形にはしない。
+実行の入口は両方を利用できるが、usecaseがadapterの設定型を参照する形にはしない。
 テストでは、検証対象やテストに必要な型・実装を参照する。
-
-## entrypoints
-
-実行方法に応じた入力の解析・検証、[Zodによる環境変数の検証](env.md#zodによる検証変換)、adapterの生成を行い、usecaseへ`deps`と`input`を渡す。
-結果は標準出力など、その入口に合う形で返す。実行形態に固有の制御もここで扱う。
-
-`entrypoints/summarize.ts`の例：
-
-```ts
-import { z } from "zod";
-import { createFileReader } from "../adapters/file-reader.js";
-import { summarize } from "../usecases/summarize.js";
-
-const env = z.object({
-  INPUT_ROOT: z.string().min(1),
-}).parse(process.env);
-
-const deps = {
-  fileReader: createFileReader({ root: env.INPUT_ROOT }),
-};
-
-const result = await summarize({
-  deps,
-  input: { path: "input.txt" },
-});
-
-console.log(result);
-```
-
-### CLI
-
-CLIにはcittyを使い、コマンドの構造に合わせてファイルを分ける。
-
-```text
-entrypoints/cli/
-├── index.ts
-└── summarize.ts
-```
-
-`index.ts`でサブコマンドを登録し、選ばれたコマンドを動的importで読み込む。
-
-```ts
-import { defineCommand, runMain } from "citty";
-
-runMain(defineCommand({
-  subCommands: {
-    summarize: () => import("./summarize.js").then((m) => m.default),
-  },
-}));
-```
-
-各コマンドは引数定義と実行処理を持つ。`summarize.ts`の例：
-
-```ts
-import { defineCommand } from "citty";
-import { z } from "zod";
-import { createFileReader } from "../../adapters/file-reader.js";
-import { summarize } from "../../usecases/summarize.js";
-
-const env = z.object({
-  INPUT_ROOT: z.string().min(1),
-}).parse(process.env);
-
-export default defineCommand({
-  args: {
-    path: { type: "string", required: true },
-  },
-  run: async ({ args }) => {
-    const deps = {
-      fileReader: createFileReader({ root: env.INPUT_ROOT }),
-    };
-    const result = await summarize({ deps, input: { path: args.path } });
-    console.log(result);
-  },
-});
-```
-
-引数の定義・解析はcittyに任せる。コマンドをグループ化する場合は、サブディレクトリの`index.ts`で同じ構造を繰り返す。
-`runMain`はCLIの最上位で呼び、サブコマンドは`defineCommand`の結果をexportする。
 
 ## usecases
 
@@ -189,7 +102,7 @@ const result = await summarize({
 });
 ```
 
-この結果や、必要に応じて依存への呼び出しを検証する。テストの配置は[Vitestの設定](vitest.md)に従う。
+この結果や、必要に応じて依存への呼び出しを検証する。テストの配置は[テストの共通方針](testing.md)に従う。
 
 portは利用側に必要な操作として定義する。複数のusecaseで共有する場合も、`ports/`にまとめてよい。
 抽象度は、何を切り離したいかで決める。
@@ -203,7 +116,7 @@ portは利用側に必要な操作として定義する。複数のusecaseで共
 ## domainとlib
 
 `domain`には、アプリが扱う概念と、それに関する型・ルール・処理を置く。
-具体的な内容はプロジェクトに合わせる。entrypoints・usecases・ports・adaptersには依存せず、他の層から利用される。
+具体的な内容はプロジェクトに合わせる。実行の入口・usecases・ports・adaptersには依存せず、他の層から利用される。
 
 `lib`には、アプリ固有の意味を持たない汎用処理を置く。
 まずは使う場所の近くに置き、実際に共有が必要になったときに切り出しを検討する。

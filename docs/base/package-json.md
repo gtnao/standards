@@ -46,7 +46,8 @@
 `.mjs`は常にESM、`.cjs`は常にCommonJSになる。古いツールの設定だけCommonJSが必要なら、そのファイルを`.cjs`にできる。
 依存パッケージはそれぞれの設定に従うため、自分の`type`で依存先の方式まで変わることはない。
 
-Node.jsのESMでは、相対importに`./foo.js`のように拡張子を書く。ブラウザーと同様に明示されたパスで読み込むためで、CommonJSやバンドラーのような拡張子・`index.js`の補完は行わない。
+Node.jsで直接実行するESMでは、相対importに`./foo.js`のように拡張子を書く。ブラウザーと同様に明示されたパスで読み込むためで、CommonJSやバンドラーのような拡張子・`index.js`の補完は行わない。
+Next.jsなどバンドラーを使う構成のimport解決は、その構成の設定に従う。
 `type`はコードを変換する設定ではない。TypeScriptの`NodeNext`などもこの指定を参照するので、tsconfigとは役割が異なるが無関係ではない。
 
 ### packageManager

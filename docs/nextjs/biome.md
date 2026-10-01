@@ -1,6 +1,6 @@
 # Next.jsのBiome設定
 
-[create-next-app](create-next-app.md)が生成する設定を土台に、[Biomeの共通方針](biome.md)を反映する。
+[create-next-app](create-next-app.md)が生成する設定を土台に、[Biomeの共通方針](../base/biome.md)を反映する。
 
 ```json
 {
@@ -38,7 +38,7 @@
 }
 ```
 
-2026年10月1日時点で、[公開から7日間待つ方針](pnpm-workspace.md#minimumreleaseage)を満たす`2.5.14`を使った例。
+2026年10月1日時点で、[公開から7日間待つ方針](../base/pnpm-workspace.md#minimumreleaseage)を満たす`2.5.14`を使った例。
 導入時には採用版を確認し、`@biomejs/biome`本体と`$schema`を揃える。
 
 ## 生成設定からの変更
@@ -73,7 +73,7 @@ Hooksの呼び出し位置・依存配列や、Next.jsでの`<img>`使用など�
 
 ## 実行コマンド
 
-[Next.jsのpackage.json設定](nextjs-package-json.md#scripts)に従い、次のscriptsを使う。
+[Next.jsのpackage.json設定](package-json.md#scripts)に従い、次のscriptsを使う。
 
 ```json
 {

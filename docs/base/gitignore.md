@@ -1,10 +1,9 @@
 # .gitignoreの初期設定
 
-Node.js・TypeScriptの現在の構成では、次をプロジェクトルートの`.gitignore`に置く。
+共通の除外として、次をプロジェクトルートの`.gitignore`に置く。生成物は採用する構成に合わせて追加する。
 
 ```gitignore
 node_modules/
-dist/
 
 .env
 .env.*
@@ -16,7 +15,6 @@ dist/
 | 項目 | 意味・理由 |
 | --- | --- |
 | `node_modules/` | インストールした依存パッケージを除外する |
-| `dist/` | [tsconfigで指定したビルド出力](tsconfig.md)を除外する |
 | `.env`・`.env.*` | ローカルの設定値や秘密情報を除外する。`.env.local`なども対象になる |
 | `!.env.example` | 共有する雛形を除外対象から戻す |
 

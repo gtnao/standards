@@ -1,6 +1,7 @@
 # Next.jsの初期生成
 
 公式の`create-next-app`で、TypeScript・App Router・Biomeを使う土台を生成する。
+共通規約・aqua・CIまで含む適用順序は[Next.jsの初期設定](README.md)を参照。
 
 ```sh
 pnpm create next-app@16.3.5 my-app \
@@ -22,7 +23,7 @@ pnpm create next-app@16.3.5 my-app \
 生成後に依存バージョンとpnpmの設定を調整し、インストールする。
 
 2026年9月23日の確認時点で最新安定版は`16.3.6`だが、公開から7日未満のため、例では`16.3.5`を使う。
-導入時には、[公開から7日間待つ方針](pnpm-workspace.md#minimumreleaseage)と互換性・修正内容を確認して採用版を更新する。生成先に後から置くpnpm設定が、生成ツール自身の取得まで制御するわけではない。
+導入時には、[公開から7日間待つ方針](../base/pnpm-workspace.md#minimumreleaseage)と互換性・修正内容を確認して採用版を更新する。生成先に後から置くpnpm設定が、生成ツール自身の取得まで制御するわけではない。
 
 ## 採用するオプション
 
@@ -31,7 +32,7 @@ pnpm create next-app@16.3.5 my-app \
 | `--ts` | TypeScriptで生成する。既定でも有効だが、言語の選択を明示する |
 | `--app` | App Routerを使う。新規ではNext.jsが推奨する構成を採用する |
 | `--src-dir` | コードを`src/`に置き、ルートの設定ファイルと分ける。App Routerは`src/app/`になる |
-| `--biome` | Lint・FormatにBiomeを使う。[既存の方針](biome.md)に揃える |
+| `--biome` | Lint・FormatにBiomeを使う。[既存の方針](../base/biome.md)に揃える |
 | `--react-compiler` | React Compilerによる自動メモ化を有効にする |
 | `--no-tailwind` | Tailwind CSSの設定・依存を追加しない |
 | `--import-alias '@/*'` | `@/`から`src/`を参照できるようにする。引用符はシェルの`*`展開を防ぐ |
@@ -119,18 +120,18 @@ Rspackは実験的な連携のため、初期設定では選ばない。
 生成ツールが新しくても、生成される依存がすべて最新版になるわけではない。
 今回の`16.3.5`では、Next.jsは`16.3.5`、Reactは`19.2.8`、Biomeは`2.4.2`、TypeScriptは`^5`、`@types/node`は`^20`だった。
 
-1. [Next.jsのpackage.json設定](nextjs-package-json.md)に合わせてpnpm・Node.js・scriptsを調整する。生成される`packageManager`は手元のpnpmの版なので、採用版と一致するか確認する。
-2. 生成された`pnpm-workspace.yaml`に、[待機期間・信頼性検証などの設定](pnpm-workspace.md)を反映する。
+1. [Next.jsのpackage.json設定](package-json.md)に合わせてpnpm・Node.js・scriptsを調整する。生成される`packageManager`は手元のpnpmの版なので、採用版と一致するか確認する。
+2. 生成された`pnpm-workspace.yaml`に、[待機期間・信頼性検証などの設定](../base/pnpm-workspace.md)を反映する。
 3. 各依存は、待機期間を満たす互換性のある最新安定版を確認して完全固定する。ReactとReact DOMは同じ版、Node.jsの型は使用するランタイムのメジャーに揃える。
-4. [Next.jsのBiome設定](nextjs-biome.md)に合わせて、`$schema`・推奨ルールの指定・除外設定を調整する。
+4. [Next.jsのBiome設定](biome.md)に合わせて、`$schema`・推奨ルールの指定・除外設定を調整する。
 
 pnpm 11以降を使った生成では、`allowBuilds`に`sharp: false`と`unrs-resolver: false`が入る。
 パッケージ自体を無効にする指定ではなく、インストールスクリプトを実行しない指定。内容を確認して引き継ぎ、他の依存も必要性を確認して個別に判断する。
 
-TypeScriptはNext.jsの対応を確認して採用版を選び、[生成されたtsconfigを土台に調整する](nextjs-typescript.md)。
-[Node.js CLI向けの設定](tsconfig.md)で上書きしない。Next.jsではバンドラーによる解決・DOM型・JSX・Next.jsの型生成が必要で、`noEmit: true`にも役割がある。
+TypeScriptはNext.jsの対応を確認して採用版を選び、[生成されたtsconfigを土台に調整する](typescript.md)。
+[Node.js CLI向けの設定](../cli/tsconfig.md)で上書きしない。Next.jsではバンドラーによる解決・DOM型・JSX・Next.jsの型生成が必要で、`noEmit: true`にも役割がある。
 
-`.gitignore`にはNext.jsの生成物の除外を残し、[環境変数の方針](gitignore.md)に合わせて`!.env.example`を追加する。
+`.gitignore`にはNext.jsの生成物の除外を残し、[環境変数の方針](../base/gitignore.md)に合わせて`!.env.example`を追加する。
 
 調整後は生成先でGitを初期化し、依存をインストールする。既にGit管理下なら初期化は不要。
 

@@ -79,7 +79,7 @@ pre-commit:
       run: pnpm run typecheck
 ```
 
-[Biomeの`lint`](biome.md#実行コマンド)と[TypeScriptの`typecheck`](tsconfig.md)を並行実行する。
+[Biomeの`lint`](biome.md#実行コマンド)と[TypeScriptの`typecheck`](typescript.md)を並行実行する。scriptsの実装はCLI・Next.jsそれぞれの設定に従う。
 先頭の`lefthook`で、Gitフックからの呼び出しもaqua経由に揃える。
 自動修正はせず、失敗したら修正・ステージしてから再度コミットする。
 検査対象は作業ツリーなので、部分ステージしたコミットの内容だけを検査するものではない。

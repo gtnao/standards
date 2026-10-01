@@ -1,6 +1,6 @@
 # Vitestの初期設定
 
-Node.jsで動くTypeScriptのユニットテストを対象にする。
+[テストの共通方針](../base/testing.md)を、Node.jsで動くTypeScriptのユニットテストに適用する。
 本番のビルドは引き続きtscを使う。Vitestは内部でViteを使うが、アプリのビルド方式を変更する必要はない。
 
 ルートに`vitest.config.ts`を置く。
@@ -24,7 +24,7 @@ export default defineConfig({
 pnpm add -D vitest
 ```
 
-[pnpmの設定](pnpm-workspace.md)に従い、公開後の待機期間を満たすバージョンを使う。
+[pnpmの設定](../base/pnpm-workspace.md)に従い、公開後の待機期間を満たすバージョンを使う。
 
 `package.json`のscriptsに追加・反映する。ビルド用設定は後述。
 
@@ -40,7 +40,7 @@ pnpm add -D vitest
 ```
 
 `test`は一度実行して終了する。変更のたびに再実行したいときだけ`test:watch`を使う。
-通常のテスト実行では型チェックをしないため、CIでは`typecheck`・`test`・`lint`・`build`をそれぞれ実行する。具体例は[GitHub ActionsのCI初期設定](github-actions.md)を参照。
+通常のテスト実行では型チェックをしないため、CIでは`typecheck`・`test`・`lint`・`build`をそれぞれ実行する。具体例は[GitHub ActionsのCI初期設定](../base/github-actions.md)を参照。
 
 生成物をGitに含めないよう、`.gitignore`に`.vitest/`を追加する。
 
@@ -60,22 +60,9 @@ pnpm add -D vitest
 `tsconfig.json`の`types`に`vitest/globals`を追加する必要もなく、本番コードにテスト用のグローバル型を持ち込まずに済む。
 グローバルな`afterEach`などを前提に自動処理する外部ライブラリを導入する場合は、そのライブラリの手動設定が必要か確認する。
 
-## テストは対象コードの近くに置く
+## テストの配置
 
-```text
-src/
-  sum.ts
-  sum.test.ts
-  __tests__/
-    helpers.ts
-```
-
-ユニットテストは対象コードと一緒に見つけやすく、変更・移動もしやすい配置を選ぶ。
-Vitest公式の入門例も対象コードとテストを並べている。
-複数の機能にまたがる結合テスト・E2Eテストが必要になれば、`tests/`などへの分離を検討する。
-
-テスト専用のヘルパーは`__tests__/`に置き、本番コードと区別する。
-`*.spec.ts`やルートの`tests/`を使う場合は、Vitestの探索範囲・ビルド除外・後述のLintも配置に合わせる。型チェックは後述の設定でプロジェクト全体を対象にする。
+[テストの共通方針](../base/testing.md)に従い、対象コードの近くに`*.test.ts`、テスト専用ヘルパーを`__tests__/`へ置く。
 
 ```ts
 // src/sum.test.ts
@@ -137,7 +124,7 @@ test("2つの数を足す", () => {
 
 ## 本番コードからテストへのimportを制限する
 
-[Biomeの設定](biome.md)に次の`overrides`を追加する。
+[Biomeの設定](../base/biome.md)に次の`overrides`を追加する。
 
 ```json
 {
@@ -153,7 +140,7 @@ test("2つの数を足す", () => {
                 "patterns": [
                   {
                     "group": ["vitest", "vitest/**", "**/*.test.*", "**/__tests__/**"],
-                    "message": "本番コードからテスト用コードをimportしないでください。"
+                    "message": "Do not import test code from production code."
                   }
                 ]
               }

@@ -1,20 +1,7 @@
-# 環境変数の扱い
+# 環境変数の共通方針
 
-ローカルでは`.env`を使い、本番・CIでは実行環境から環境変数を渡す。
-Node.js 24の標準機能で読み込み、Zodで値を検証・変換する。
-
-`package.json`の実行コマンドは次のようにする。
-
-```json
-{
-  "scripts": {
-    "dev": "tsx --env-file-if-exists=.env src/index.ts",
-    "start": "node --enable-source-maps dist/index.js"
-  }
-}
-```
-
-開発・ビルド・本番実行の構成は[tsconfigの初期設定](tsconfig.md#開発型チェックビルドの使い分け)を参照。
+ローカルの設定値はGit管理から外し、本番・CIでは実行環境から渡す。
+アプリで使う値はZodで検証・変換する。
 
 ## ファイルと読み込みの方針
 
@@ -26,16 +13,6 @@ Node.js 24の標準機能で読み込み、Zodで値を検証・変換する。
 
 最初から環境別のファイルを揃えず、ローカルの`.env`で始める。
 Gitへの除外設定は[.gitignoreの初期設定](gitignore.md)を参照。
-
-通常のNode.jsは、`.env`を置いただけでは自動で読み込まない。
-tsxもNode.jsのCLIオプションを受け付けるため、開発用コマンドで読み込みを指定する。dotenvなどの追加パッケージは不要。
-
-`--env-file-if-exists`は、ファイルがない場合も実行を続ける。
-必要なのは設定値であり、`.env`ファイル自体ではないため、この指定を選ぶ。環境変数を直接渡していれば、ファイルなしでも動かせる。
-必須値の不足はアプリ側の検証で検出する。
-
-既に実行環境にある値と`.env`の値が重複した場合は、実行環境側が優先される。
-`--env-file=.env`を使うと、ファイルが存在しない時点でエラーになる。
 
 ## Zodによる検証・変換
 
@@ -109,11 +86,13 @@ env.BATCH_SIZE; // number
 env.DRY_RUN;    // boolean
 ```
 
-`.env`から環境変数への読み込みはNode.js、値の検証・変換はZodが担当する。
+値の読み込み方法と検証・変換を分ける。読み込みは実行環境に合わせ、検証・変換にはZodを使う。
+
+## 実行環境ごとの読み込み
+
+- [CLI](../cli/env.md)：Node.jsのオプションで`.env`を読み込む。
+- [Next.js](../nextjs/README.md#今後整理するもの)：フレームワークの読み込み、公開範囲、検証する時点を別途整理する。
 
 ## 参考
 
-- [Node.js：環境変数と.env](https://nodejs.org/docs/latest-v24.x/api/environment_variables.html)
-- [Node.js：--env-file](https://nodejs.org/docs/latest-v24.x/api/cli.html#--env-filefile)
-- [tsx：Node.jsのCLIオプション](https://tsx.is/node-enhancement)
 - [Zod：スキーマ・型変換・既定値](https://zod.dev/api)

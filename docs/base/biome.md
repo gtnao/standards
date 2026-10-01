@@ -47,12 +47,7 @@ pnpm add -D -E @biomejs/biome@2.5.13
 
 `rules.recommended: true`は非推奨になっているため、後継の`preset: "recommended"`を使う。
 
-`.gitignore`には、少なくとも次を入れる。
-
-```gitignore
-node_modules/
-dist/
-```
+除外は[.gitignoreの共通方針](gitignore.md)に従う。生成物は構成に合わせ、CLIなら`dist/`、Next.jsなら`.next/`などを除外する。
 
 ## 実行コマンド
 
@@ -71,13 +66,16 @@ dist/
 - `--write`：整形と、Biomeが安全と分類した自動修正を適用する。
 - `--error-on-warnings`：警告も失敗扱いにする方針。修正できない指摘が残れば失敗する。
 
-`lint`という名前だが、整形の確認も含む。型チェックは[tsconfigの設定例](tsconfig.md)の`typecheck`で別途行う。
+`lint`という名前だが、整形の確認も含む。型チェックは[TypeScriptの共通方針](typescript.md)に従い、各構成の`typecheck`で別途行う。
 
-## 初期設定で入れないもの
+## 既定値に任せる項目と追加設定
+
+設定の省略は[共通の判断基準](typescript.md#設定を明示省略する方針)に従う。
+上の例は既定動作を利用する書き方。[Next.jsの生成設定](../nextjs/biome.md)では、Lint・Format・import整理・インデント幅を採用方針として明示したまま使う。
 
 | 項目 | 省略する理由 |
 | --- | --- |
-| `formatter.enabled`・`linter.enabled` | 既定で有効 |
+| `formatter.enabled`・`linter.enabled` | 既定で有効。採用方針として明示してもよい |
 | `assist.actions.source.organizeImports` | import整理は既定で有効。採用方針として明示してもよい |
 | `files.includes` | まず全体を対象とし、生成物などの除外は`.gitignore`に集約する |
 | 引用符・セミコロン・行幅など | まずBiomeの既定値を採用する |

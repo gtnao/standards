@@ -1,9 +1,11 @@
 # GitHub ActionsのCI初期設定
 
-pnpm 12で依存をインストールし、Biome・TypeScript・Vitestによるチェックとビルドを実行する。
-[package.json](package-json.md)でランタイムを管理し、[Biome](biome.md#実行コマンド)と[Vitest](vitest.md#導入実行)のscriptsを設定しておく。
+pnpm 12で依存をインストールし、Lint・型チェック・テスト・ビルドを実行する。
+[package.json](package-json.md)でランタイムを管理し、各構成のscriptsを設定しておく。
+CLI・Next.jsのどちらでも、権限・SHA固定・同時実行制御・必須チェックの方針を共通にする。
 
-`.github/workflows/ci.yml`を作成する。
+`.github/workflows/ci.yml`を作成する。以下は`test`を含む4つのscriptsが揃った構成の例。
+テスト構成が未導入なら`pnpm run test`のステップはその導入時に追加する。
 
 ```yaml
 name: CI
@@ -78,8 +80,8 @@ pnpm 12は単体で動く実行ファイルであり、アプリ用のNode.jsは
 | --- | --- |
 | `lint` | BiomeのLint・整形・import整理 |
 | `typecheck` | 本番コード・テスト・設定・開発用スクリプトの型 |
-| `test` | Vitestによる動作テスト。watchせず終了する |
-| `build` | 本番コードからJavaScriptを生成できること |
+| `test` | 動作テスト。watchせず終了する |
+| `build` | 各構成の本番向けビルドが成功すること |
 
 まず1ジョブにまとめ、セットアップやインストールの重複を避ける。
 途中で失敗すると後続ステップは実行されない。

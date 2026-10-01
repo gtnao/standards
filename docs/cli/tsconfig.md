@@ -2,7 +2,8 @@
 
 Node.js 24で実行するアプリの設定例。TypeScript 7系を使い、設定例は6系でも利用できる。
 バンドラーは使わず、開発はtsx、型チェック・ビルドはtsc、本番実行はNode.jsとする。
-`package.json`には`"type": "module"`を設定し、ソースを`src/`に置く。
+[package.jsonの共通設定](../base/package-json.md)で`"type": "module"`を設定し、ソースを`src/`に置く。
+テストを含む初期構成では、続けて[Vitestの設定](vitest.md#型チェックとビルドを分ける)を反映し、型チェック対象を広げてビルド設定を分離する。
 
 ```json
 {
@@ -63,13 +64,8 @@ tsconfigは本番のNode.jsに合わせ、CIなどでビルド後の実行も確
 
 ## 設定を明示・省略する方針
 
-**プロジェクトの品質・安全性に関する方針は明示し、他の設定から自動的に決まる付随設定や、常に有効な機能の指定は省略する。**
-
-- `strict: true`：厳格な型チェックを採用する方針なので、既定値と同じでも明示する。
-- `moduleResolution`：`module: "NodeNext"`から決まるため省略する。
-- `esModuleInterop`：TypeScript 6以降では対応する相互運用の挙動が常に有効なので省略する。
-
-環境・入出力・検証の省略など、プロジェクトとして判断した内容も明示する。
+[共通の判断基準](../base/typescript.md#設定を明示省略する方針)に従う。
+この構成では`moduleResolution`は`NodeNext`から決まり、TypeScript 6以降の`esModuleInterop`も独立した指定が不要なので省略する。
 
 ## 各項目の意味と採用理由
 
@@ -124,49 +120,15 @@ TypeScript 6以降では`rootDir`の既定値がtsconfigのあるディレクト
 テストや開発用スクリプトを追加する場合は、それらも型チェック対象に含め、ビルド対象と分ける。
 具体例は[Vitestの初期設定](vitest.md)を参照。
 
-### strict
+### 共通の型チェック設定
 
-暗黙の`any`や`null`・`undefined`の扱いなど、基本となる厳格な型チェックをまとめて有効にする。
-TypeScript 6以降では既定値も`true`だが、プロジェクトの方針として明示する。
+[TypeScriptの共通方針](../base/typescript.md#型チェックの設定)に従い、次を`true`にする。
 
-次の2項目は`strict`に含まれないため、追加で有効にする。
-
-### noUncheckedIndexedAccess
-
-配列や辞書を添字で参照したとき、要素が存在しない可能性を型に反映する。
-
-```ts
-const names: string[] = [];
-const first = names[0]; // string | undefined
-```
-
-存在確認をせずに値を使うミスを検出するため採用する。
-
-### exactOptionalPropertyTypes
-
-プロパティが存在しないことと、値として`undefined`を持つことを区別する。
-
-```ts
-type Options = { label?: string };
-
-const a: Options = {};                   // OK
-const b: Options = { label: "example" }; // OK
-const c: Options = { label: undefined }; // エラー
-```
-
-明示的な`undefined`も許容したい場合は、`label?: string | undefined`と書く。
-省略と値の指定の違いを正確に表すため採用する。読み取り時に`undefined`の可能性がなくなるわけではない。
-
-### verbatimModuleSyntax
-
-型だけの読み込みは`import type`で明示し、それ以外のimport・exportは基本的にそのまま出力する。
-
-```ts
-import type { Options } from "./options.js";
-```
-
-型としてしか使わないかどうかを変換ツールに推測させず、tsxとtscの変換の食い違いを減らすため採用する。
-モジュール形式に合わないimport・exportを暗黙にCommonJSへ書き換えることも防ぐ。
+- `strict`
+- `noUncheckedIndexedAccess`
+- `exactOptionalPropertyTypes`
+- `verbatimModuleSyntax`
+- `skipLibCheck`
 
 ### noEmitOnError
 
@@ -174,17 +136,6 @@ import type { Options } from "./options.js";
 既定値は`false`で、通常の`tsc`はエラー終了しても生成物を出力し得るため、ビルドの方針として`true`にする。
 
 以前生成した`dist`のファイルを削除する機能ではない。ビルドが失敗したら、古い生成物をそのまま実行・配布しない。
-
-### skipLibCheck
-
-`.d.ts`内部の整合性検証を省略する。依存先だけでなく、自分で書いた`.d.ts`も対象になる。
-アプリのコードや、アプリからのライブラリの使い方は引き続き型チェックされる。
-
-**アプリは厳格にチェックし、型定義内部の検証は省略して、チェック時間と依存先の型定義によるビルド停止を抑える**方針で`true`を採用する。
-型定義同士の不整合を見逃す可能性は受け入れる。問題のある型定義を修正する設定ではない。
-
-これは問題発生時の回避策としてだけでなく、TypeScript 5.9の`tsc --init`生成例や、`@tsconfig/node24`・`@tsconfig/strictest`でも初期設定として採用されている。
-コンパイラーの省略時の既定値が`false`であることと、初期設定として`true`を書くことは別。
 
 ### sourceMap
 

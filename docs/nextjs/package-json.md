@@ -1,6 +1,6 @@
 # Next.jsのpackage.json設定
 
-[create-next-appの生成結果](create-next-app.md)に、[package.jsonの共通方針](package-json.md)と実行コマンドを反映する。
+[create-next-appの生成結果](create-next-app.md)に、[package.jsonの共通方針](../base/package-json.md)と実行コマンドを反映する。
 
 ```json
 {
@@ -44,7 +44,7 @@
 `type: "module"`はNext.jsを動かすための必須項目ではないが、プロジェクトのモジュール方式を明示するため採用する。
 Next.jsもESMの`next.config.ts`に対応している。CommonJSが必要な設定ファイルは`.cjs`などで区別する。
 
-`packageManager`・`devEngines.runtime`の役割や、`engines`などを省略する理由は[共通方針](package-json.md)に従う。
+`packageManager`・`devEngines.runtime`の役割や、`engines`などを省略する理由は[共通方針](../base/package-json.md)に従う。
 本番環境でpnpmを経由しない場合、Node.jsの版は本番側でも揃える。
 
 ## scripts
@@ -58,16 +58,16 @@ Next.jsもESMの`next.config.ts`に対応している。CommonJSが必要な設�
 | `lint` | 生成時の`biome check`に`--error-on-warnings .`を加え、警告も失敗扱いにする |
 | `lint:fix` | 生成時の`format: "biome format --write"`を置き換える。整形・import整理・安全なLint修正をまとめて適用する |
 
-型生成と型チェックの詳細は[Next.jsのTypeScript設定](nextjs-typescript.md#実行コマンド)、Biomeの設定とコマンドは[Next.jsのBiome設定](nextjs-biome.md)を参照。
+型生成と型チェックの詳細は[Next.jsのTypeScript設定](typescript.md#実行コマンド)、Biomeの設定とコマンドは[Next.jsのBiome設定](biome.md)を参照。
 テスト用scriptsは、テスト構成を決める段階で追加する。
 
 ## 依存バージョンの調整
 
-[公開後の待機期間・信頼性検証](pnpm-workspace.md)を適用し、互換性のある最新安定版を確認して完全固定する。
+[公開後の待機期間・信頼性検証](../base/pnpm-workspace.md)を適用し、互換性のある最新安定版を確認して完全固定する。
 Next.js・React・React DOMの対応を確認し、ReactとReact DOMは同じ版に揃える。
 `@types/node`は実行するNode.js、React向けの型はReactのメジャーに合わせる。
 
-TypeScriptは[Next.js側の対応](nextjs-typescript.md#typescriptと型パッケージの版)も確認する。
+TypeScriptは[Next.js側の対応](typescript.md#typescriptと型パッケージの版)も確認する。
 Biomeを更新したら`biome.json`の`$schema`も揃える。
 依存の解決結果は`pnpm-lock.yaml`で共有する。
 

@@ -1,6 +1,6 @@
-# 本番用Dockerイメージの初期設定
+# CLI・バッチ用Dockerイメージの初期設定
 
-TypeScriptをtscでビルドし、生成したJavaScriptをNode.jsで実行する構成。
+[Dockerの共通方針](../base/docker.md)を、TypeScriptをtscでビルドしてNode.jsで実行する構成に適用する。
 [Vitestの設定](vitest.md#型チェックとビルドを分ける)に合わせ、`pnpm run build`は`tsc -p tsconfig.build.json`を実行する。
 
 ルートに`Dockerfile`を置く。
@@ -61,7 +61,7 @@ Nodeのバージョン・digestは検証済みの例。導入時にはlockfile�
 
 この方式なら、READMEやインフラ設定などが増えても、その都度除外を追加する必要がない。
 ビルドに必要なファイルが増えたときに、許可対象とDockerfileの`COPY`を追加する。
-[.gitignore](gitignore.md)とは目的が異なり、こちらはビルドへ渡す対象を絞るため許可方式を選ぶ。
+[.gitignore](../base/gitignore.md)とは目的が異なり、こちらはビルドへ渡す対象を絞るため許可方式を選ぶ。
 
 `src/**`にはテストも含まれる。本番への混入は`tsconfig.build.json`と、最終ステージへコピーする対象で制御する。
 ローカルの`node_modules/`や`dist/`は渡さず、コンテナ内で作成する。
@@ -108,7 +108,7 @@ Node公式のDebian slimを使う。AlpineとのCライブラリの違いによ�
 `trixie`でDebianの世代、完全バージョンでNodeの版、digestでイメージの内容を固定する。
 OSの修正を取り込むときもdigestを更新する。
 
-pnpmはNode 24に同梱されたCorepackで導入し、[package.jsonの`packageManager`](package-json.md#packagemanager)に従う。
+pnpmはNode 24に同梱されたCorepackで導入し、[package.jsonの`packageManager`](../base/package-json.md#packagemanager)に従う。
 Dockerfileへのバージョンの重複記載や、pnpmの配布ファイルの手動コピーを避けられる。
 Node 25以降にはCorepackが同梱されないため、移行時には導入方法も見直す。
 
@@ -119,7 +119,7 @@ Node 25以降にはCorepackが同梱されないため、移行時には導入�
 | `--no-runtime` | 本番のNodeはベースイメージにあるため、pnpmによるランタイムの取得・リンクを省略する |
 | `RUN test ...` | pnpmが用意したビルド用Nodeと、本番イメージのNodeの完全バージョンを比較し、不一致なら止める |
 
-アプリの依存には[pnpm-workspace.yamlの制限](pnpm-workspace.md)が適用される。
+アプリの依存には[pnpm-workspace.yamlの制限](../base/pnpm-workspace.md)が適用される。
 その制限がCorepackによるpnpmの初期取得や、ベースイメージの取得にも適用されるわけではない。
 
 ## 本番実行
@@ -143,7 +143,7 @@ docker run --rm --init --env-file .env my-app
 `--init`は、シグナルの転送や終了した子プロセスの回収を行う軽量なinitを使う指定。
 実際の処理を安全に中断するための後始末は、アプリ側で実装する。
 
-`.env`はイメージに含めず、[環境変数の方針](env.md)に従って実行時に値を渡す。
+`.env`はイメージに含めず、[環境変数の方針](../base/env.md)に従って実行時に値を渡す。
 上の`.env`はローカルの動作確認用。本番では実行環境から設定値を渡す。
 秘密情報をDockerfileの`ARG`・`ENV`に埋め込まない。
 

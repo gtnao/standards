@@ -12,10 +12,10 @@ classは定義しない。データは型・インターフェース、処理は
 
 | 対象 | 基本方針 |
 | --- | --- |
-| ファイル・ディレクトリ | `kebab-case` |
+| ファイル・ディレクトリ | `kebab-case`。フレームワークが定めるファイル名はその規約に従う |
 | 関数・変数 | `camelCase` |
 | 型・インターフェース | `PascalCase`。インターフェースに`I`接頭辞は付けない |
-| export | 基本はnamed export。cittyのコマンド定義など、用途に合わせてdefault exportを使う |
+| export | 基本はnamed export。フレームワークやツールが要求する場合はdefault exportを使う |
 | 型・定数 | 関連する処理と同じファイルに置く。種類だけで`types/`・`constants/`へ分散させない |
 | 補助関数 | まず使うファイル内に置き、必要なものだけexportする |
 | `index.ts` | CLIの取りまとめなど、役割がある場合に使う。単なる再export用には増やさない |

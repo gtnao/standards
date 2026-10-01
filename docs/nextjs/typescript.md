@@ -44,7 +44,7 @@ JavaScriptへの変換・ビルドはNext.js、型チェックはTypeScriptが�
 | `isolatedModules` | `true` | 削除。`verbatimModuleSyntax`により有効になるため |
 | `include` | `next-env.d.ts`・`**/*.ts`・`**/*.tsx`・`**/*.mts`とNext.jsの生成型 | 通常の探索を`**/*`にまとめ、Next.jsの生成型は明示したまま残す |
 
-その他は生成値を維持する。`target`・`lib`も現時点ではNext.jsの生成値を使い、[Node.js CLI向けの設定](tsconfig.md)をそのまま移さない。
+その他は生成値を維持する。`target`・`lib`も現時点ではNext.jsの生成値を使い、[Node.js CLI向けの設定](../cli/tsconfig.md)をそのまま移さない。
 
 ## 各項目の意味と理由
 
@@ -80,7 +80,7 @@ Next.jsのコードはバンドラーを通るため、同じ設定に揃える�
 | `skipLibCheck: true` | `.d.ts`内部の整合性検証を省略する。アプリからその型を使う部分は引き続き検証する |
 | `verbatimModuleSyntax: true` | 型専用のimportを明示し、変換ツールによるimportの扱いの食い違いを減らす |
 
-基本方針は[CLI向けの型チェック方針](tsconfig.md#strict)と共通。
+基本方針は[共通の型チェック方針](../base/typescript.md)に従う。
 JavaScriptも対象にする場合、`allowJs: true`だけではその内部の本格的な型チェックは有効にならず、`checkJs`などが別途必要になる。
 
 生成時の`isolatedModules: true`は、ファイル単位で変換するツールが正しく処理できない書き方を検出するもの。
