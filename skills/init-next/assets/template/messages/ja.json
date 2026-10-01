@@ -1,0 +1,9 @@
+{
+  "home": {
+    "title": "ホーム"
+  },
+  "validation": {
+    "required": "入力してください",
+    "invalid": "入力内容を確認してください"
+  }
+}

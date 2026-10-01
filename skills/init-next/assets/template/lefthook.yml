@@ -1,0 +1,9 @@
+lefthook: aqua exec -- lefthook
+
+pre-commit:
+  parallel: true
+  jobs:
+    - name: lint
+      run: pnpm run lint
+    - name: typecheck
+      run: pnpm run typecheck
