@@ -15,7 +15,8 @@ Next.js固有の設定がある項目は、その文書の完成形と変更理�
 | 6 | [.gitignore](../base/gitignore.md) | 生成された`.next/`・`out/`・`next-env.d.ts`・`*.tsbuildinfo`などの除外を維持し、`!.env.example`を追加する |
 | 7 | [コーディング方針](../base/coding-guidelines.md) | 共通規約を採用し、生成されたAGENTS.mdの管理ブロック外から参照する。React固有の追加方針は今後整理する |
 | 8 | [aqua](../base/aqua.md) | pinact・Lefthookを共通で採用する。`lint`・`typecheck`はNext.jsのscriptsを使い、フックを登録する |
-| 9 | [GitHub Actions](../base/github-actions.md) | 権限・SHA固定・実行制御・必須チェックを採用する。現在は`lint`・`typecheck`・`build`、テスト設定後に`test`を追加する |
+| 9 | [テスト](../base/testing.md) | BaseのNode.js向けVitest設定・scripts・Biomeのimport制限を採用する。対象はusecase・domainなどのユニットテストとする |
+| 10 | [GitHub Actions](../base/github-actions.md) | 権限・SHA固定・実行制御・必須チェックを採用し、`lint`・`typecheck`・`test`・`build`を実行する |
 
 初期生成文書の手順で依存をインストールし、型チェック・Lint・ビルドを確認する。
 CIのActionはaqua経由のpinactでSHAに固定する。pnpmのセキュリティ設定はNext.jsでも緩めない。
@@ -23,7 +24,7 @@ CIのActionはaqua経由のpinactでSHAに固定する。pnpmのセキュリテ�
 ## 用途に応じて採用するもの
 
 PostgreSQLが必要なら、[Docker Compose](../base/docker-compose.md)の設定を共通で使う。
-本番をコンテナ化する場合は[Dockerの共通方針](../base/docker.md)を採用するが、Next.js用のDockerfileは別途整理する。
+本番をコンテナ化する場合は、[Dockerの共通方針](../base/docker.md)を反映した[Next.js用Dockerfile](docker.md)を使う。
 
 ## 今後整理するもの
 
@@ -35,7 +36,5 @@ PostgreSQLが必要なら、[Docker Compose](../base/docker-compose.md)の設定
 | 環境変数 | [秘密情報の扱い・Zod検証](../base/env.md) | 読み込み、サーバー専用と公開値の区別、ビルド時と実行時の検証 |
 | ディレクトリ設計 | [責務と依存方向](../base/directory-structure.md) | app・UI・Server／Clientの境界、CLI・バッチが同居する場合の配置 |
 | コーディング方針 | [命名・関数・型・コメント](../base/coding-guidelines.md) | React・Next.js固有の規約 |
-| テスト | [配置・書き方・依存境界](../base/testing.md) | Vitestの対象、TSX・UI・ブラウザーテスト、CIへの反映 |
-| Docker | [版固定・秘密情報・本番に渡す対象](../base/docker.md) | Next.jsの成果物・起動方法・.dockerignore・書き込み先 |
 
 環境変数や外部サービスを追加したら、CIの型チェック・ビルドで必要になる設定も合わせて決める。

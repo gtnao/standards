@@ -3,30 +3,10 @@
 [テストの共通方針](../base/testing.md)を、Node.jsで動くTypeScriptのユニットテストに適用する。
 本番のビルドは引き続きtscを使う。Vitestは内部でViteを使うが、アプリのビルド方式を変更する必要はない。
 
-ルートに`vitest.config.ts`を置く。
-
-```ts
-import { defineConfig } from "vitest/config";
-
-export default defineConfig({
-  test: {
-    environment: "node",
-    globals: false,
-    include: ["src/**/*.test.ts"],
-    passWithNoTests: true,
-  },
-});
-```
+Vitestの設定・導入・`test`と`test:watch`は[Base](../base/testing.md)をそのまま使う。
+CLIでは、次のscriptsとビルド対象の分離を追加する。
 
 ## 導入・実行
-
-```sh
-pnpm add -D vitest
-```
-
-[pnpmの設定](../base/pnpm-workspace.md)に従い、公開後の待機期間を満たすバージョンを使う。
-
-`package.json`のscriptsに追加・反映する。ビルド用設定は後述。
 
 ```json
 {
@@ -38,27 +18,6 @@ pnpm add -D vitest
   }
 }
 ```
-
-`test`は一度実行して終了する。変更のたびに再実行したいときだけ`test:watch`を使う。
-通常のテスト実行では型チェックをしないため、CIでは`typecheck`・`test`・`lint`・`build`をそれぞれ実行する。具体例は[GitHub ActionsのCI初期設定](../base/github-actions.md)を参照。
-
-生成物をGitに含めないよう、`.gitignore`に`.vitest/`を追加する。
-
-## 設定の意味と採用理由
-
-| 項目 | 意味・理由 |
-| --- | --- |
-| `environment: "node"` | Node.js向けのテストであることを明示する。既定値と同じ |
-| `globals: false` | `test`・`expect`・`vi`などを必要なファイルでimportする方針。既定値と同じ |
-| `include` | `src`内の`*.test.ts`に統一する。生成先の`dist`を探索対象にせず、テストの命名・配置も明確にする |
-| `passWithNoTests: true` | テスト未作成の初期段階でもCIを通せるよう、テスト0件を成功扱いにする |
-
-設定ファイルなしでもVitestは動くが、実行環境とテストの書き方・配置を明示しておく。
-`passWithNoTests`は探索設定の誤りで0件になった場合も成功するため、テストの追加後は実行件数も確認する。
-
-`globals: false`なら、テストAPIの出所がコードから分かり、通常のimportと同じように補完・型チェックできる。
-`tsconfig.json`の`types`に`vitest/globals`を追加する必要もなく、本番コードにテスト用のグローバル型を持ち込まずに済む。
-グローバルな`afterEach`などを前提に自動処理する外部ライブラリを導入する場合は、そのライブラリの手動設定が必要か確認する。
 
 ## テストの配置
 
@@ -124,53 +83,8 @@ test("2つの数を足す", () => {
 
 ## 本番コードからテストへのimportを制限する
 
-[Biomeの設定](../base/biome.md)に次の`overrides`を追加する。
-
-```json
-{
-  "overrides": [
-    {
-      "includes": ["src/**", "!src/**/*.test.ts", "!src/**/__tests__/**"],
-      "linter": {
-        "rules": {
-          "style": {
-            "noRestrictedImports": {
-              "level": "error",
-              "options": {
-                "patterns": [
-                  {
-                    "group": ["vitest", "vitest/**", "**/*.test.*", "**/__tests__/**"],
-                    "message": "Do not import test code from production code."
-                  }
-                ]
-              }
-            }
-          }
-        }
-      }
-    }
-  ]
-}
-```
-
-`includes`はルールを適用するファイル、`group`はimportを禁止する名前・パターン。
-テストとヘルパーにはこの制限を適用しないので、それらの間のimportは許可する。他のLintやFormatは引き続き適用される。
-`*.test.*`は、TypeScript内で書く`./sum.test.js`にも一致させるための指定。
-
-このルールはimportの文字列を検査する。例えば`#test-helper`という別名が`__tests__/helpers.ts`を指していても、その対応先までは判定しない。
-別名を導入した場合は、その名前も禁止パターンに追加する。
-テスト専用コードを通常の名前・場所に置いた場合も識別できないため、命名・配置のルールとセットで運用する。
-
-## 初期設定で入れないもの
-
-| 項目 | 省略する理由 |
-| --- | --- |
-| `setupFiles` | 共通の初期化処理が必要になってから追加する |
-| `jsdom`・`happy-dom` | Node.jsのテストにDOM環境は不要 |
-| カバレッジ | 計測対象・目標を決める段階で追加する。その際はテスト・ヘルパーを計測対象から除外する |
-| `clearMocks`・`mockReset`・`restoreMocks` | 履歴・実装・spyの復元で役割が異なる。モックを使う際に後始末の方針を決める |
-| `pool`・並列数・タイムアウト | まず既定値を使い、実際の制約に合わせて変更する |
-| Vitestの`typecheck` | 通常のコードとテストの型チェックは`tsc --noEmit`にまとめる |
+[Baseのimport制限](../base/testing.md#本番コードからテストへのimportを制限する)をBiomeへ追加する。
+ビルド除外と併用し、本番コードからテストやヘルパーを参照しないようにする。
 
 ## 参考
 

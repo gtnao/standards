@@ -21,7 +21,9 @@
     "start": "next start",
     "typecheck": "next typegen && tsc --noEmit",
     "lint": "biome check --error-on-warnings .",
-    "lint:fix": "biome check --write --error-on-warnings ."
+    "lint:fix": "biome check --write --error-on-warnings .",
+    "test": "vitest run",
+    "test:watch": "vitest"
   }
 }
 ```
@@ -53,13 +55,13 @@ Next.jsもESMの`next.config.ts`に対応している。CommonJSが必要な設�
 | --- | --- |
 | `dev` | `next dev`を維持する。変更を反映する開発サーバーを起動する |
 | `build` | `next build`を維持する。本番向けにビルドする |
-| `start` | `next start`を維持する。ビルド済みアプリを本番モードで起動する |
+| `start` | 通常のビルドでは`next start`で本番モードを起動する。[Dockerのstandalone構成](docker.md)では、DockerfileのCMDで`node server.js`を直接実行する |
 | `typecheck` | 追加する。Next.jsの型を生成してから、ビルドせず型チェックする |
 | `lint` | 生成時の`biome check`に`--error-on-warnings .`を加え、警告も失敗扱いにする |
 | `lint:fix` | 生成時の`format: "biome format --write"`を置き換える。整形・import整理・安全なLint修正をまとめて適用する |
 
 型生成と型チェックの詳細は[Next.jsのTypeScript設定](typescript.md#実行コマンド)、Biomeの設定とコマンドは[Next.jsのBiome設定](biome.md)を参照。
-テスト用scriptsは、テスト構成を決める段階で追加する。
+`test`・`test:watch`は[BaseのVitest設定](../base/testing.md)と併せて追加する。Next.jsでもNode.js上のユニットテストには共通設定を使う。
 
 ## 依存バージョンの調整
 

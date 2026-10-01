@@ -71,6 +71,11 @@ Hooksの呼び出し位置・依存配列や、Next.jsでの`<img>`使用など�
 依存パッケージによる自動有効化もあるが、ここでは採用方針を明示する。
 `recommended`は推奨ルールの指定であり、その分野の全ルールを有効にするものではない。
 
+## テストコードのimport制限
+
+[Baseのimport制限](../base/testing.md#本番コードからテストへのimportを制限する)を、冒頭の設定へ`overrides`として追加する。
+本番コードからテスト用コードへの参照を防ぎ、テストファイル・ヘルパーからの参照は許可する。
+
 ## 実行コマンド
 
 [Next.jsのpackage.json設定](package-json.md#scripts)に従い、次のscriptsを使う。
