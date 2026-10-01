@@ -91,7 +91,7 @@ env.DRY_RUN;    // boolean
 ## 実行環境ごとの読み込み
 
 - [CLI](../cli/env.md)：Node.jsのオプションで`.env`を読み込む。
-- [Next.js](../nextjs/README.md#今後整理するもの)：フレームワークの読み込み、公開範囲、検証する時点を別途整理する。
+- [Next.js](../nextjs/env.md)：Next.jsに読み込みを任せ、サーバー用と公開値、検証する時点を分ける。
 
 ## 参考
 

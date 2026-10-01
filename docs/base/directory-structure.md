@@ -14,7 +14,7 @@
 
 各層の中は、規模や処理のまとまりに応じて分割する。粒度は実装時に判断し、依存ルールを維持する。
 Node.jsで直接実行する場合は[CLIの配置](../cli/directory-structure.md)に従う。
-Next.jsのapp・UIの配置は[今後整理する](../nextjs/README.md#今後整理するもの)。
+Next.jsのapp・UIの配置は[Next.jsのディレクトリ設計](../nextjs/directory-structure.md)に従う。
 
 ## 依存関係
 

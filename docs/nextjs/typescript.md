@@ -18,6 +18,7 @@ JavaScriptへの変換・ビルドはNext.js、型チェックはTypeScriptが�
     "module": "esnext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
+    "allowArbitraryExtensions": true,
     "verbatimModuleSyntax": true,
     "jsx": "react-jsx",
     "incremental": true,
@@ -38,6 +39,7 @@ JavaScriptへの変換・ビルドはNext.js、型チェックはTypeScriptが�
 | 項目 | 生成時 | 変更後・理由 |
 | --- | --- | --- |
 | `allowJs` | `true` | `false`。新規コードはTypeScriptで統一する |
+| `allowArbitraryExtensions` | なし | `true`。[next-intlの生成宣言](i18n.md#nextjs設定と型安全性)をJSON importに対応付ける |
 | `noUncheckedIndexedAccess` | なし | `true`。配列・辞書の要素が存在しない可能性を型に反映する |
 | `exactOptionalPropertyTypes` | なし | `true`。プロパティの省略と明示的な`undefined`を区別する |
 | `verbatimModuleSyntax` | なし | `true`。型だけのimportを`import type`で明示する |

@@ -3,6 +3,7 @@
 [Dockerの共通方針](../base/docker.md)に従い、Next.jsのstandalone出力を非rootで実行する。
 
 `next.config.ts`に`output: "standalone"`を追加する。
+[next-intlのplugin](i18n.md#nextjs設定と型安全性)を使う場合も、そのラッパーを維持して既存設定へ追加する。
 
 ```ts
 import type { NextConfig } from "next";
@@ -60,17 +61,22 @@ Nodeの版・digestは検証時の例。導入時はlockfileで確定したNode�
 !pnpm-workspace.yaml
 !tsconfig.json
 !next.config.ts
+!postcss.config.mjs
+!messages/
+!messages/**
 !src/
 !src/**
 !public/
 !public/**
 
+messages/*.d.json.ts
 **/.env
 **/.env.*
 ```
 
 この指定と組み合わせるため、`COPY . .`の対象は許可したファイルに限定される。
 ローカルの`node_modules`・`.next`は持ち込まない。末尾の指定で、src・public内も含めて`.env`類を除外する。
+[MantineのPostCSS設定](mantine.md#スタイルとpostcss)と[next-intlのメッセージ](i18n.md)も許可する。翻訳の型宣言はビルドで生成するため、ローカルの生成物は除外する。
 ビルドに必要な設定やファイルが増えたら、許可対象に追加する。
 
 ## 採用理由とCLI構成との差分
@@ -112,7 +118,7 @@ docker build -t my-app .
 docker run --rm --init -p 127.0.0.1:3000:3000 my-app
 ```
 
-ローカルで環境変数が必要なら、runに`--env-file .env`を追加する。本番は[共通の環境変数方針](../base/env.md)に従って渡す。
+ローカルで環境変数が必要なら、runに`--env-file .env`を追加する。本番は[Next.jsの環境変数方針](env.md)に従って渡す。
 サーバー側でも静的生成時に参照する値はビルドに影響する。`NEXT_PUBLIC_*`はビルド時に埋め込まれるため、実行時の差し替えを前提にしない。
 必要なビルド時変数は用途ごとに追加し、秘密情報をDockerfileの`ARG`・`ENV`へ埋め込まない。
 
@@ -129,6 +135,16 @@ React Compilerを有効にし、共通のpnpmセキュリティ設定を例外�
 - publicがない状態でのビルド・起動。
 - SIGTERMで、強制終了を待たずに停止すること。
 
+上記の基本構成に加え、同日、Mantine 9.6.2・Tabler Icons 3.48.0・next-intl 4.14.6を組み合わせた構成も検証した。
+[依存のinstall scriptの判断](i18n.md#依存のinstall-script)を追加し、セキュリティ設定を維持したまま、次を確認した。
+
+- standaloneイメージのビルドと非rootでの起動。
+- 生成ファイルがない状態からの`next typegen && tsc --noEmit`。
+- Server／Client双方の翻訳で、不正なキー・引数の不足・名前や型の誤りが型エラーになること。
+- 日本語のサーバー描画・Client Componentの初期描画、MantineとTablerのHTML出力。
+- JS・CSS・publicファイルのHTTP応答と、Mantine向けPostCSS処理の適用。
+
+ブラウザー上の操作・hydrationは検証範囲に含めていない。
 amd64・複数コンテナ構成は未検証。依存や構成を変更した場合も、standaloneに必要ファイルが含まれるかと、実行時の権限を確認する。
 
 ## 参考

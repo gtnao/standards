@@ -17,6 +17,10 @@ Next.js固有の設定がある項目は、その文書の完成形と変更理�
 | 8 | [aqua](../base/aqua.md) | pinact・Lefthookを共通で採用する。`lint`・`typecheck`はNext.jsのscriptsを使い、フックを登録する |
 | 9 | [テスト](../base/testing.md) | BaseのNode.js向けVitest設定・scripts・Biomeのimport制限を採用する。対象はusecase・domainなどのユニットテストとする |
 | 10 | [GitHub Actions](../base/github-actions.md) | 権限・SHA固定・実行制御・必須チェックを採用し、`lint`・`typecheck`・`test`・`build`を実行する |
+| 11 | [ディレクトリ設計](directory-structure.md) | Baseの責務と依存関係を維持し、ページ固有の実装を近くの`_components`・`_helpers`、共通UIを`src/components`へ置く |
+| 12 | [Mantine・Tabler Icons](mantine.md) | CSS・Provider・PostCSSを設定し、必要なアイコンを個別にimportする |
+| 13 | [i18n](i18n.md) | next-intlで日本語の文言を管理し、キーと埋め込み引数を型検査する |
+| 14 | [環境変数](env.md) | Zodの共通方針を使い、公開範囲と検証する時点を分ける |
 
 初期生成文書の手順で依存をインストールし、型チェック・Lint・ビルドを確認する。
 CIのActionはaqua経由のpinactでSHAに固定する。pnpmのセキュリティ設定はNext.jsでも緩めない。
@@ -32,9 +36,6 @@ PostgreSQLが必要なら、[Docker Compose](../base/docker-compose.md)の設定
 
 | 項目 | 引き継ぐ方針 | Next.jsで整理する内容 |
 | --- | --- | --- |
-| Mantine | UIはMantineを採用する | CSS・Provider・テーマ・カラーモード |
-| 環境変数 | [秘密情報の扱い・Zod検証](../base/env.md) | 読み込み、サーバー専用と公開値の区別、ビルド時と実行時の検証 |
-| ディレクトリ設計 | [責務と依存方向](../base/directory-structure.md) | app・UI・Server／Clientの境界、CLI・バッチが同居する場合の配置 |
 | コーディング方針 | [命名・関数・型・コメント](../base/coding-guidelines.md) | React・Next.js固有の規約 |
 
 環境変数や外部サービスを追加したら、CIの型チェック・ビルドで必要になる設定も合わせて決める。

@@ -71,6 +71,7 @@ Next.js・React・React DOMの対応を確認し、ReactとReact DOMは同じ版
 
 TypeScriptは[Next.js側の対応](typescript.md#typescriptと型パッケージの版)も確認する。
 Biomeを更新したら`biome.json`の`$schema`も揃える。
+[Mantine・Tabler IconsとPostCSS](mantine.md)、[next-intl](i18n.md)、[環境変数検証のZod](env.md)も各文書に従って追加する。
 依存の解決結果は`pnpm-lock.yaml`で共有する。
 
 ## 参考
