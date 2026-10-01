@@ -1,5 +1,6 @@
 # Next.js用Dockerイメージの初期設定
 
+`Dockerfile`・`.dockerignore`を初期構成に含める。
 [Dockerの共通方針](../base/docker.md)に従い、Next.jsのstandalone出力を非rootで実行する。
 
 `next.config.ts`に`output: "standalone"`を追加する。

@@ -16,12 +16,12 @@ CLI・Next.jsの両方で採用する土台。実行環境ごとの完成した�
 | [aqua](aqua.md) | 開発ツールの版管理、pinact、Lefthook |
 | [GitHub Actions](github-actions.md) | CIの実行、権限・SHA固定・必須チェック |
 
-用途に応じて次も採用する。
+Docker関連の共通方針も用意する。Next.jsでは両方を初期構成に含め、CLIでは用途に応じて採用する。
 
-| 項目 | 採用する場合 |
+| 項目 | 用途 |
 | --- | --- |
-| [Docker Compose](docker-compose.md) | ローカル開発でPostgreSQLが必要な場合 |
-| [Docker](docker.md) | 本番用コンテナイメージを作る場合 |
+| [Docker Compose](docker-compose.md) | ローカル開発用のPostgreSQL |
+| [Docker](docker.md) | 本番用コンテナイメージ |
 
 共通方針は各構成から参照し、実行環境に依存する設定値は各構成側で具体化する。
 同じファイルへ反映する設定は統合し、生成済みの設定を共通の例で丸ごと上書きしない。

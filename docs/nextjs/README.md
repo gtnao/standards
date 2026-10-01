@@ -20,15 +20,14 @@ Next.js固有の設定がある項目は、その文書の完成形と変更理�
 | 11 | [ディレクトリ設計](directory-structure.md) | Baseの責務と依存関係を維持し、ページ固有の実装を近くの`_components`・`_helpers`、共通UIを`src/components`へ置く |
 | 12 | [Mantine・Tabler Icons](mantine.md) | CSS・Provider・PostCSSを設定し、必要なアイコンを個別にimportする |
 | 13 | [i18n](i18n.md) | next-intlで日本語の文言を管理し、キーと埋め込み引数を型検査する |
-| 14 | [環境変数](env.md) | Zodの共通方針を使い、公開範囲と検証する時点を分ける |
+| 14 | [React Hook Form](react-hook-form.md) | Zodで入力型と出力型を定義し、ControllerでMantineへ接続する。エラー文言はnext-intlから渡す |
+| 15 | [環境変数](env.md) | Zodの共通方針を使い、公開範囲と検証する時点を分ける |
+| 16 | [Docker Compose](../base/docker-compose.md) | ルートに`compose.yaml`を置き、ローカル開発用のPostgreSQLを用意する。Next.js自体はローカルで実行する |
+| 17 | [Dockerfile](docker.md) | ルートに`Dockerfile`・`.dockerignore`を置き、本番用のstandaloneイメージをビルドできる状態にする |
 
 初期生成文書の手順で依存をインストールし、型チェック・Lint・ビルドを確認する。
+Docker ComposeとDockerfileも初期構成に含め、PostgreSQLの起動と本番イメージのビルド・起動を確認する。
 CIのActionはaqua経由のpinactでSHAに固定する。pnpmのセキュリティ設定はNext.jsでも緩めない。
-
-## 用途に応じて採用するもの
-
-PostgreSQLが必要なら、[Docker Compose](../base/docker-compose.md)の設定を共通で使う。
-本番をコンテナ化する場合は、[Dockerの共通方針](../base/docker.md)を反映した[Next.js用Dockerfile](docker.md)を使う。
 
 ## 今後整理するもの
 
