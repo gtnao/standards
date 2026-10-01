@@ -119,10 +119,10 @@ Rspackは実験的な連携のため、初期設定では選ばない。
 生成ツールが新しくても、生成される依存がすべて最新版になるわけではない。
 今回の`16.3.5`では、Next.jsは`16.3.5`、Reactは`19.2.8`、Biomeは`2.4.2`、TypeScriptは`^5`、`@types/node`は`^20`だった。
 
-1. [package.jsonの方針](package-json.md)に合わせてpnpm・Node.jsを指定する。生成される`packageManager`は手元のpnpmの版なので、採用版と一致するか確認する。
+1. [Next.jsのpackage.json設定](nextjs-package-json.md)に合わせてpnpm・Node.js・scriptsを調整する。生成される`packageManager`は手元のpnpmの版なので、採用版と一致するか確認する。
 2. 生成された`pnpm-workspace.yaml`に、[待機期間・信頼性検証などの設定](pnpm-workspace.md)を反映する。
 3. 各依存は、待機期間を満たす互換性のある最新安定版を確認して完全固定する。ReactとReact DOMは同じ版、Node.jsの型は使用するランタイムのメジャーに揃える。
-4. Biomeの更新に合わせて`$schema`と設定を調整する。[基本方針](biome.md)を反映しつつ、Next.js・React向けの`linter.domains`は維持する。
+4. [Next.jsのBiome設定](nextjs-biome.md)に合わせて、`$schema`・推奨ルールの指定・除外設定を調整する。
 
 pnpm 11以降を使った生成では、`allowBuilds`に`sharp: false`と`unrs-resolver: false`が入る。
 パッケージ自体を無効にする指定ではなく、インストールスクリプトを実行しない指定。内容を確認して引き継ぎ、他の依存も必要性を確認して個別に判断する。
