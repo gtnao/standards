@@ -18,6 +18,9 @@ src/
   env/
     server.ts
     public.ts
+  prisma/
+    client.ts
+    generated/
   usecases/
   domain/
   ports/
@@ -37,6 +40,7 @@ src/
 | `src/components` | アプリ全体で共有するReactコンポーネント |
 | `src/env` | [環境変数の検証・変換](env.md)。サーバー用と、必要な場合だけ公開用を分ける |
 | `usecases`・`domain`・`ports`・`adapters` | Baseと同じ責務・依存関係 |
+| `src/prisma` | [Prismaのクライアントと生成コード](prisma.md)。adapters配置の例外 |
 | `src/lib` | アプリ固有の意味を持たない汎用処理。Baseの方針に従い、必要になったものだけ切り出す |
 
 `_helpers`は、その画面を実現するための処理をまとめる名前として使う。
@@ -80,6 +84,8 @@ app/settings/
 usecaseなどの下位層から`app`・`components`へ依存させない。
 画面表示やNext.js固有の制御は入口側に置き、usecaseは依存と入力を受け取り、結果を返す。
 共通コンポーネントから特定のページの`_helpers`を参照せず、必要な値や処理をpropsなどで受け取る。
+
+Prismaは上記の外部機能の配置ルールの例外とし、usecasesから直接API・生成型を使える。domainも生成型へ依存できるが、DB接続・クエリ実行は持ち込まない。
 
 ## ServerとClientの境界
 
