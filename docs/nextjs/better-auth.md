@@ -1,6 +1,6 @@
 # Better Authの初期設定
 
-事前に作成されたユーザーのメール・パスワードによるログイン・ログアウトと、DBに保存するセッションを用意する。
+Adminプラグインで管理者がユーザーを作成し、メール・パスワードによるログイン・ログアウトと、DBに保存するセッションを用意する。
 テナントを持たない構成として、Organizationプラグインは使わない。メール確認・パスワード再設定は後から追加する。
 
 ## 依存と配置
@@ -12,16 +12,18 @@ pnpm add -E better-auth@1.7.6 @better-auth/prisma-adapter@1.7.6
 pnpm add -D -E auth@1.7.6
 ```
 
-`auth`はschema生成用の公式CLI。本体・Prisma adapter・CLIの版を揃える。
+`auth`はschema生成・初期管理者作成に使う公式CLI。本体・Prisma adapter・CLIの版を揃える。
 バージョンは[共通の依存管理方針](../base/pnpm-workspace.md)に従って選び、完全固定する。
 
 `auth@1.7.6`の間接依存`semver@6.3.1`は、`trustPolicy: no-downgrade`で拒否されるため、上記CLIの導入には[依存単位の審査](../base/pnpm-workspace.md#例外の運用)が必要。信頼性チェックを一括で無効にしない。
 
 ```text
 auth.config.ts
+auth.cli.config.ts
 src/
   auth/
     options.ts
+    admin.ts
     server.ts
     client.ts
     session.ts
@@ -53,7 +55,55 @@ export const authOptions = {
 } satisfies BetterAuthOptions;
 ```
 認証方式とパスワードの長さを明示し、`disableSignUp: true`でメール・パスワードの新規登録APIを無効にする。
-ユーザーの作成は管理側の処理として別途用意する。
+ユーザーの作成にはAdminプラグインを使い、初期管理者だけ公式CLIから作成する。
+
+## 管理者の権限とユーザー作成時の検証
+
+`src/auth/admin.ts`にAdminプラグインと共通の検証をまとめる。フォームから読み込む`options.ts`へ、サーバー側のプラグインを持ち込まない。
+
+```ts
+import { APIError, createAuthMiddleware } from "better-auth/api";
+import { admin } from "better-auth/plugins";
+import { createAccessControl } from "better-auth/plugins/access";
+import { defaultStatements } from "better-auth/plugins/admin/access";
+import { z } from "zod";
+import { authOptions } from "./options";
+
+const ac = createAccessControl(defaultStatements);
+const roles = {
+  admin: ac.newRole({ user: ["create", "list", "get"] }),
+  user: ac.newRole({}),
+};
+const passwordSchema = z
+  .string()
+  .min(authOptions.emailAndPassword.minPasswordLength)
+  .max(authOptions.emailAndPassword.maxPasswordLength);
+
+export const adminOptions = {
+  plugins: [admin({ ac, roles })],
+  hooks: {
+    before: createAuthMiddleware(async (ctx) => {
+      if (ctx.path !== "/admin/create-user") return;
+      if (!passwordSchema.safeParse(ctx.body?.password).success) {
+        throw new APIError("BAD_REQUEST", {
+          message: "Invalid password",
+          code: "INVALID_PASSWORD",
+        });
+      }
+    }),
+  },
+};
+```
+
+管理者にはユーザーの作成・一覧・取得だけを許可する。標準の管理者権限は広いため、利用する操作を明示する。一般ユーザーには管理操作を許可しない。
+削除・停止・代理ログイン・ロール変更・パスワード変更は、必要になった時点で権限と操作方法を追加する。
+`adminUserIds`は権限チェックを迂回するため指定しない。
+
+Better Auth 1.7.6のAdminによるユーザー作成は、パスワード省略を許し、指定時も上限だけを検証する。メール・パスワード認証用のユーザーを作るため、before hookで必須・下限・上限を検証する。制約は`authOptions`を参照し、HTTP APIと初期管理者作成の両方に適用する。
+
+この設定はCLIからも読み込むため、`server-only`は実行時の`server.ts`に置く。
+
+## サーバー設定
 
 [サーバー用の環境変数](env.md)へ、次の項目と対応する`process.env`の明示的な読み取りを追加する。
 
@@ -73,6 +123,7 @@ import { prismaAdapter } from "@better-auth/prisma-adapter";
 import { betterAuth } from "better-auth/minimal";
 import { getServerEnv } from "@/env/server";
 import { getPrisma } from "@/prisma/client";
+import { adminOptions } from "./admin";
 import { authOptions } from "./options";
 
 let auth: ReturnType<typeof createAuth> | undefined;
@@ -86,6 +137,7 @@ function createAuth() {
   const env = getServerEnv();
   return betterAuth({
     ...authOptions,
+    ...adminOptions,
     baseURL: env.BETTER_AUTH_URL,
     secret: env.BETTER_AUTH_SECRET,
     database: prismaAdapter(getPrisma(), { provider: "postgresql" }),
@@ -97,12 +149,14 @@ Prisma接続を使うため、組み込みDB接続部分を含まない`better-a
 
 ## schemaの生成と適用
 
-ルートの`auth.config.ts`はCLI専用とし、共通設定だけを読み込む。
+ルートの`auth.config.ts`はschema生成専用とし、共通設定だけを読み込む。
 
 ```ts
 import { betterAuth } from "better-auth/minimal";
+import { adminOptions } from "./src/auth/admin";
 import { authOptions } from "./src/auth/options";
-export const auth = betterAuth(authOptions);
+
+export const auth = betterAuth({ ...authOptions, ...adminOptions });
 ```
 ```sh
 pnpm exec auth generate --config ./auth.config.ts --adapter prisma --dialect postgresql
@@ -115,6 +169,18 @@ pnpm exec auth generate --config ./auth.config.ts --adapter prisma --dialect pos
 [Prismaの命名規則](prisma.md#schemaの命名)に合わせ、テーブル名を`users`・`sessions`・`accounts`・`verifications`へ`@@map`する。
 カラムは`emailVerified @map("email_verified")`、`userId @map("user_id")`など、snake_caseへ対応させる。
 Prisma側のモデル名・フィールド名は維持するため、Better Auth側の名前設定を変更する必要はない。
+
+Adminプラグインが追加するフィールドも保持する。停止や代理ログインを使わなくても、プラグインが参照する標準schemaの一部なので削らない。
+
+| モデル | フィールド | DBカラム |
+| --- | --- | --- |
+| User | `role` | `role` |
+| User | `banned` | `banned` |
+| User | `banReason` | `ban_reason` |
+| User | `banExpires` | `ban_expires` |
+| Session | `impersonatedBy` | `impersonated_by` |
+
+`banReason`・`banExpires`・`impersonatedBy`には対応する`@map`を付ける。
 
 schema差分とマッピングを確認してから、SQLを生成する。
 
@@ -131,6 +197,83 @@ pnpm run db:generate
 
 生成されたschema・migrationsはGit管理する。認証設定の変更で再生成した場合も差分を確認する。
 再生成時も、テーブル名・カラム名のマッピングを差分確認の対象に含める。
+
+## 初期管理者の作成
+
+migration適用とPrisma Client生成を済ませてから、DBへ接続する`auth.cli.config.ts`をルートに置く。
+`@next/env`は[環境変数の方針](env.md)に従って導入し、Next.jsと同じ規則で`.env*`を読む。
+schema生成用の`auth.config.ts`と分け、生成時にはDB接続や秘密情報を要求しない。
+
+```ts
+import { prismaAdapter } from "@better-auth/prisma-adapter";
+import { loadEnvConfig } from "@next/env";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { betterAuth } from "better-auth/minimal";
+import { z } from "zod";
+import { adminOptions } from "./src/auth/admin";
+import { authOptions } from "./src/auth/options";
+import { PrismaClient } from "./src/prisma/generated/client";
+
+loadEnvConfig(process.cwd());
+const env = z
+  .object({
+    DATABASE_URL: z.string().min(1),
+    BETTER_AUTH_URL: z.url(),
+    BETTER_AUTH_SECRET: z.string().min(32),
+  })
+  .parse({
+    DATABASE_URL: process.env.DATABASE_URL,
+    BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
+    BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
+  });
+const prisma = new PrismaClient({
+  adapter: new PrismaPg({
+    connectionString: env.DATABASE_URL,
+    connectionTimeoutMillis: 5000,
+  }),
+});
+export const auth = betterAuth({
+  ...authOptions,
+  ...adminOptions,
+  baseURL: env.BETTER_AUTH_URL,
+  secret: env.BETTER_AUTH_SECRET,
+  database: prismaAdapter(prisma, { provider: "postgresql" }),
+});
+```
+
+作成先DBの環境変数を設定して実行する。
+
+```sh
+pnpm exec auth create-admin \
+  --config ./auth.cli.config.ts \
+  --email admin@example.com \
+  --name "管理者" \
+  --role admin \
+  --no-email-verified
+```
+
+パスワードは対話入力する。引数に載せず、シェル履歴へ残さない。
+メール確認はしていないため、`--no-email-verified`を指定する。既存ユーザーがいる場合の確認も省略しない。
+
+公式CLIはDB接続を持つ信頼された処理として管理APIを直接呼ぶため、管理者がまだいなくても作成できる。公開の新規登録APIを一時的に有効にする必要はない。
+
+## アプリからのユーザー作成
+
+管理者用のServer Action・Route Handlerから作成する場合は、実際のリクエストのheadersを渡す。
+
+```ts
+const requestHeaders = await headers();
+await getAuth().api.createUser({
+  headers: requestHeaders,
+  body: { name, email, password },
+});
+```
+
+`headers`は`next/headers`、`getAuth`は`@/auth/server`からimportする。
+管理者のセッションと`user:create`権限はAdminプラグインが確認する。
+`role`は省略し、既定の一般ユーザーとして作成する。`role: "user"`でも明示するとロール設定権限が必要になる。
+
+headersもrequestも渡さない直接呼び出しは、CLIと同じ特権操作になる。アプリの操作では必ずリクエストを引き継ぎ、呼び出し元の認証・権限チェックを有効にする。
 
 ## APIとセッション
 
@@ -327,7 +470,7 @@ export function AuthForm() {
   },
   "validation": {
     "invalidEmail": "有効なメールアドレスを入力してください",
-    "lengthRange": "{min}〜{max}文字で入力してください"
+    "lengthRange": "{min, number}〜{max, number}文字で入力してください"
   }
 }
 ```
@@ -348,7 +491,10 @@ DB接続情報・認証の秘密鍵は実行時だけ渡す。
 
 - [Better Auth：導入](https://better-auth.com/docs/installation)
 - [Prisma adapter](https://better-auth.com/docs/adapters/prisma)
-- [CLI](https://better-auth.com/docs/concepts/cli)
+- [CLI・初期管理者の作成](https://better-auth.com/docs/concepts/cli)
+- [Adminプラグイン・アクセス制御](https://better-auth.com/docs/plugins/admin)
+- [Hooks](https://better-auth.com/docs/concepts/hooks)
+- [Adminのユーザー作成実装（1.7.6）](https://github.com/better-auth/better-auth/blob/v1.7.6/packages/better-auth/src/plugins/admin/routes.ts)
 - [Next.js連携](https://better-auth.com/docs/integrations/next)
 - [設定オプション：disableSignUp](https://better-auth.com/docs/reference/options)
 - [メール・パスワード認証](https://better-auth.com/docs/authentication/email-password)
