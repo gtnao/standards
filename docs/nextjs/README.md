@@ -25,6 +25,7 @@ Next.js固有の設定がある項目は、その文書の完成形と変更理�
 | 16 | [Docker Compose](../base/docker-compose.md) | ルートに`compose.yaml`を置き、ローカル開発用のPostgreSQLを用意する。Next.js自体はローカルで実行する |
 | 17 | [Dockerfile](docker.md) | ルートに`Dockerfile`・`.dockerignore`を置き、本番用のstandaloneイメージをビルドできる状態にする |
 | 18 | [Prisma](prisma.md) | PostgreSQLへのアクセス・生成型・Prisma Migrateを設定する。Prismaはadapters配置の例外とする |
+| 19 | [Better Auth](better-auth.md) | メール・パスワード認証とDB保存のセッションを用意し、Mantine＋RHFで最小フォームを作る |
 
 初期生成文書の手順で依存をインストールし、型チェック・Lint・ビルドを確認する。
 Docker ComposeとDockerfileも初期構成に含め、PostgreSQLの起動と本番イメージのビルド・起動を確認する。

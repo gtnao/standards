@@ -44,6 +44,24 @@ datasource db {
 実際に扱うモデルをこのschemaへ追加する。旧`prisma-client-js`ではなく、出力先を明示する`prisma-client`を使う。
 生成コードは手編集せず、`.gitignore`に`/src/prisma/generated/`を追加する。schemaとmigrationsはGit管理する。
 
+## schemaの命名
+
+DBのテーブル名はsnake_case・複数形、カラム名はsnake_caseにする。
+Prismaのモデル名は単数形のPascalCase、フィールド名はlowerCamelCaseを使い、DB上の名前と分ける。
+
+```prisma
+model UserProfile {
+  id          String @id
+  displayName String @map("display_name")
+
+  @@map("user_profiles")
+}
+```
+
+各モデルに`@@map`を明示し、DB上の名前が異なるフィールドには`@map`を付ける。`id`など同じ名前のフィールドへの`@map`は不要。
+リレーションフィールド自体はカラムではないため、`@map`は付けない。外部キーのスカラーフィールドは同じ命名方針に従う。
+外部ライブラリのCLIが生成したモデルも、マイグレーションSQLを作る前にこの規則へ揃える。
+
 ## CLIの設定と環境変数
 
 `prisma.config.ts`：
@@ -214,6 +232,8 @@ pnpm run db:deploy
 DB接続情報なしでNext.js・Dockerをビルドし、standaloneイメージからPostgreSQLへの書き込み・読み取りも確認した。
 
 ## 参考
+
+- [DBのテーブル名・カラム名とPrismaの名前の対応](https://www.prisma.io/docs/orm/v7/prisma-schema/data-model/database-mapping)
 
 - [Prisma 7：migrate devとcreate-only](https://docs.prisma.io/docs/cli/v7/migrate/dev)
 - [create-only実行時の既存マイグレーションの適用](https://github.com/prisma/prisma/issues/11184)
