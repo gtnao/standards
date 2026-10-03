@@ -21,6 +21,7 @@ src/
   prisma/
     client.ts
     generated/
+  queries/
   usecases/
   domain/
   ports/
@@ -39,6 +40,7 @@ src/
 | `app`配下の`_helpers` | 同じ範囲で使うServer Actions・入力検証・表示用変換など |
 | `src/components` | アプリ全体で共有するReactコンポーネント |
 | `src/env` | [環境変数の検証・変換](env.md)。サーバー用と、必要な場合だけ公開用を分ける |
+| `src/queries` | [表示用のDB取得](queries.md)。find/listでデータを返す |
 | `usecases`・`domain`・`ports`・`adapters` | Baseと同じ責務・依存関係 |
 | `src/prisma` | [Prismaのクライアントと生成コード](prisma.md)。adapters配置の例外 |
 | `src/lib` | アプリ固有の意味を持たない汎用処理。Baseの方針に従い、必要になったものだけ切り出す |
@@ -77,6 +79,7 @@ app/settings/
 | フォーム入力の検証、検索パラメーターの解釈 | 近くの`_helpers` |
 | 依存を組み立ててusecaseを呼ぶServer Action | 近くの`_helpers` |
 | 処理結果を画面向けのデータへ変換する | 近くの`_helpers` |
+| 画面などへ返すデータのDB取得 | `queries` |
 | 業務の目的を達成する処理手順 | `usecases` |
 | 業務上の概念・ルール | `domain` |
 | 外部機能の契約と実装 | `ports`・`adapters` |
@@ -85,7 +88,11 @@ usecaseなどの下位層から`app`・`components`へ依存させない。
 画面表示やNext.js固有の制御は入口側に置き、usecaseは依存と入力を受け取り、結果を返す。
 共通コンポーネントから特定のページの`_helpers`を参照せず、必要な値や処理をpropsなどで受け取る。
 
-Prismaは上記の外部機能の配置ルールの例外とし、usecasesから直接API・生成型を使える。domainも生成型へ依存できるが、DB接続・クエリ実行は持ち込まない。
+queriesとusecasesは入口から使い分け、相互に依存させない。queriesはPrisma・domain・libを利用でき、app・componentsへは依存しない。
+
+Prismaは外部機能の配置ルールの例外とし、queries・usecasesからAPI・生成型を使える。
+取得・更新の使い分けは[Prismaの利用方針](prisma.md#usecasesでの利用)に従う。
+domainも生成型へ依存できるが、DB接続・クエリ実行は持ち込まない。
 
 ## ServerとClientの境界
 

@@ -28,6 +28,7 @@ Next.jsのapp・UIの配置は[Next.jsのディレクトリ設計](../nextjs/dir
 | `lib` | 他の層には依存しない |
 
 [Prisma](../nextjs/prisma.md#依存関係の例外)はadapters配置の例外とする。usecasesからAPI・生成型、domainから生成型への依存を許可する。
+Next.jsで表示用データを取得する層は[queriesの方針](../nextjs/queries.md)に従う。
 
 同じ層のモジュール同士は必要に応じて参照できる。循環依存は作らない。
 標準機能や外部ライブラリの利用は、各層の責務に合わせて判断する。
