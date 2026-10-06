@@ -26,7 +26,6 @@ src/
     admin.ts
     server.ts
     client.ts
-    session.ts
   app/
     api/auth/[...all]/route.ts
     sign-in/
@@ -37,6 +36,15 @@ src/
 
 アプリ固有の認証設定なので、汎用処理用の`lib`ではなく`src/auth`にまとめる。
 usecasesには認証済みユーザーのIDなどを引数で渡し、Next.jsのheadersやCookieを持ち込まない。
+
+ファイルは実行環境・利用元の境界で分ける。短い補助関数ごとには分割しない。
+
+| ファイル | 分ける理由 |
+| --- | --- |
+| `server.ts` | Next.jsのサーバー専用。認証インスタンス・セッション取得・未認証時のリダイレクトをまとめる |
+| `client.ts` | ブラウザーから認証APIを呼ぶクライアント |
+| `options.ts` | サーバー・CLI・フォームで共有する設定。秘密情報やサーバー実装を含めない |
+| `admin.ts` | サーバーとCLIで共有するAdminプラグイン・権限・検証。ブラウザー用の設定から分離する |
 
 ## 設定と環境変数
 
@@ -63,6 +71,7 @@ export const authOptions = {
 
 ```ts
 import { APIError, createAuthMiddleware } from "better-auth/api";
+import type { BetterAuthOptions } from "better-auth/minimal";
 import { admin } from "better-auth/plugins";
 import { createAccessControl } from "better-auth/plugins/access";
 import { defaultStatements } from "better-auth/plugins/admin/access";
@@ -92,7 +101,7 @@ export const adminOptions = {
       }
     }),
   },
-};
+} satisfies BetterAuthOptions;
 ```
 
 管理者にはユーザーの作成・一覧・取得だけを許可する。標準の管理者権限は広いため、利用する操作を明示する。一般ユーザーには管理操作を許可しない。
@@ -121,16 +130,28 @@ BETTER_AUTH_SECRET: z.string().min(32),
 import "server-only";
 import { prismaAdapter } from "@better-auth/prisma-adapter";
 import { betterAuth } from "better-auth/minimal";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { getServerEnv } from "@/env/server";
 import { getPrisma } from "@/prisma/client";
 import { adminOptions } from "./admin";
 import { authOptions } from "./options";
 
 let auth: ReturnType<typeof createAuth> | undefined;
-
 export function getAuth() {
   auth ??= createAuth();
   return auth;
+}
+
+export async function getSession() {
+  const requestHeaders = await headers();
+  return getAuth().api.getSession({ headers: requestHeaders });
+}
+
+export async function requireSession() {
+  const session = await getSession();
+  if (!session) redirect("/sign-in");
+  return session;
 }
 
 function createAuth() {
@@ -206,7 +227,7 @@ schema生成用の`auth.config.ts`と分け、生成時にはDB接続や秘密�
 
 ```ts
 import { prismaAdapter } from "@better-auth/prisma-adapter";
-import { loadEnvConfig } from "@next/env";
+import nextEnv from "@next/env";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { betterAuth } from "better-auth/minimal";
 import { z } from "zod";
@@ -214,7 +235,7 @@ import { adminOptions } from "./src/auth/admin";
 import { authOptions } from "./src/auth/options";
 import { PrismaClient } from "./src/prisma/generated/client";
 
-loadEnvConfig(process.cwd());
+nextEnv.loadEnvConfig(process.cwd());
 const env = z
   .object({
     DATABASE_URL: z.string().min(1),
@@ -301,17 +322,9 @@ export const authClient = createAuthClient();
 同一オリジンなのでクライアント側のURL指定は不要。
 ログイン操作はこのクライアントから認証APIへ送る。Server ActionでCookieを書き込む構成へ変更する場合は、`nextCookies()`を追加する。
 
-`src/auth/session.ts`：
+セッション取得と未認証時のリダイレクトも`src/auth/server.ts`の`getSession`・`requireSession`にまとめる。
+ページでは`requireSession()`、未認証時の応答を個別に決めるServer Action・Route Handlerでは`getSession()`を使う。
 
-```ts
-import "server-only";
-import { headers } from "next/headers";
-import { getAuth } from "./server";
-export async function getSession() {
-  const requestHeaders = await headers();
-  return getAuth().api.getSession({ headers: requestHeaders });
-}
-```
 **`await headers()`を先に実行してから、認証設定を初期化する。**
 `getAuth().api.getSession({ headers: await headers() })`の順序では、Next.jsがリクエスト時の処理と判定する前に環境変数を読むため、秘密情報なしでビルドできなくなる。
 

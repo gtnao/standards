@@ -40,7 +40,7 @@ src/
 | `app`配下の`_helpers` | 同じ範囲で使うServer Actions・入力検証・表示用変換など |
 | `src/components` | アプリ全体で共有するReactコンポーネント |
 | `src/env` | [環境変数の検証・変換](env.md)。サーバー用と、必要な場合だけ公開用を分ける |
-| `src/queries` | [表示用のDB取得](queries.md)。find/listでデータを返す |
+| `src/queries` | [表示用のDB取得](queries.md)。find/list/searchでデータを返す |
 | `usecases`・`domain`・`ports`・`adapters` | Baseと同じ責務・依存関係 |
 | `src/prisma` | [Prismaのクライアントと生成コード](prisma.md)。adapters配置の例外 |
 | `src/lib` | アプリ固有の意味を持たない汎用処理。Baseの方針に従い、必要になったものだけ切り出す |
@@ -66,6 +66,11 @@ app/settings/
 特定の配下だけで使うものを、最初から`src/components`へ集めない。
 別のページの内部実装を直接参照するより、共有範囲に合う親へ移す。
 一つのコンポーネントや関数に閉じた型・補助関数は、[コーディング方針](../base/coding-guidelines.md)に従い、まず同じファイルに置く。
+
+[テーブル表示](table.md)の共通描画・URL状態のhookは`src/components/data-table`、IME対応の検索入力は`src/components/search-input.tsx`に置く。
+ページ固有の列・フィルターUIは近くの`_components`、URLキーと検索条件の対応は`_helpers`に置く。
+ページ計算・LIKEエスケープは`src/queries/helpers`、URLのparser生成・検索パラメーター変換は`src/app/_helpers`で共有する。
+検索条件のスキーマはqueriesの入力契約として`src/queries`に置く。DB実行ファイルと分け、UIからも参照できるよう、DB接続・`server-only`・URLや表示用ライブラリには依存させない。
 
 `_components`・`_helpers`はNext.jsのprivate folderとしてルーティング対象から外れる。
 この指定はimportの可否やサーバー専用化を制御するものではない。

@@ -67,11 +67,11 @@ model UserProfile {
 `prisma.config.ts`：
 
 ```ts
-import { loadEnvConfig } from "@next/env";
+import nextEnv from "@next/env";
 import { defineConfig } from "prisma/config";
 import { z } from "zod";
 
-loadEnvConfig(process.cwd());
+nextEnv.loadEnvConfig(process.cwd());
 const databaseUrl = z.string().min(1).optional().parse(process.env.DATABASE_URL);
 export default defineConfig({
   schema: "prisma/schema.prisma",
