@@ -167,7 +167,23 @@ export function AuthForm() {
   );
 }
 ```
-`page.tsx`は`<AuthForm />`を返すだけにする。
+`page.tsx`は、ログイン済みなら`/`へリダイレクトし、それ以外は`<AuthForm />`を返す。ログイン済みのままログイン画面を表示しない。
+
+```tsx
+import { redirect } from "next/navigation";
+import { getSession } from "@/auth/server";
+import { AuthForm } from "./_components/auth-form";
+
+export default async function Page() {
+  const session = await getSession();
+  if (session != null) {
+    redirect("/");
+  }
+
+  return <AuthForm />;
+}
+```
+
 `messages/ja.json`では、画面固有の文言を`pages.signIn`、ユーザーの項目名を`models.user`、共通の入力検証メッセージを`validation`に置く。翻訳関数は`translate`とし、名前空間を指定せず完全なキーで参照する。
 
 ```json

@@ -26,7 +26,9 @@
     "test:watch": "vitest",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev --create-only",
-    "db:deploy": "prisma migrate deploy"
+    "db:deploy": "prisma migrate deploy",
+    "auth:generate": "auth generate --config ./auth.schema.config.ts --adapter prisma --dialect postgresql",
+    "auth:create-admin": "auth create-admin --config ./auth.admin.config.ts"
   }
 }
 ```
@@ -63,10 +65,12 @@ Next.jsもESMの`next.config.ts`に対応している。CommonJSが必要な設�
 | `lint` | 生成時の`biome check`に`--error-on-warnings .`を加え、警告も失敗扱いにする |
 | `lint:fix` | 生成時の`format: "biome format --write"`を置き換える。整形・import整理・安全なLint修正をまとめて適用する |
 | `db:*` | 追加する。Prisma Clientの生成、マイグレーションSQLの作成、作成済みSQLの適用を分ける |
+| `auth:*` | 追加する。認証用schemaの生成と初期管理者の作成で、用途別のCLI設定を指定する |
 
 型生成と型チェックの詳細は[Next.jsのTypeScript設定](typescript.md#実行コマンド)、Biomeの設定とコマンドは[Next.jsのBiome設定](biome.md)を参照。
 `test`・`test:watch`は[Next.jsのVitest設定](vitest.md)と併せて追加する。Next.jsでもNode.js上のユニットテストには共通設定を使う。
 `db:*`の使い分けと、起動・型チェック・ビルドの前に生成する理由は[Prismaの生成とマイグレーション](prisma.md#生成とマイグレーション)を参照。
+`auth:*`が使う設定ファイルは[Better Authの配置](better-auth.md#依存と配置)を参照。
 
 ## 依存バージョンの調整
 
@@ -76,7 +80,7 @@ Next.js・React・React DOMの対応を確認し、ReactとReact DOMは同じ版
 
 TypeScriptは[Next.js側の対応](typescript.md#typescriptと型パッケージの版)も確認する。
 Biomeを更新したら`biome.json`の`$schema`も揃える。
-[Mantine・Tabler IconsとPostCSS](mantine.md)、[next-intl](i18n.md)、[環境変数検証のZod](env.md)、[Prisma](prisma.md)も各文書に従って追加する。
+[Mantine・Tabler IconsとPostCSS](mantine.md)、[next-intl](i18n.md)、[環境変数検証のZod](env.md)、[Prisma](prisma.md)、[Better Auth](better-auth.md)も各文書に従って追加する。
 依存の解決結果は`pnpm-lock.yaml`で共有する。
 
 ## 参考

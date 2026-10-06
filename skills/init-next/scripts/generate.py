@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import re
+import secrets
 import shutil
 import subprocess
 
@@ -51,7 +52,9 @@ def main():
             destination = target / source.relative_to(template)
             destination.parent.mkdir(parents=True, exist_ok=True)
             destination.write_text(source.read_text().replace("__PROJECT_NAME__", name))
-        shutil.copyfile(target / ".env.example", target / ".env")
+        # .env.example leaves the secret empty; each project gets its own local value.
+        local = (target / ".env.example").read_text().replace("BETTER_AUTH_SECRET=\n", f"BETTER_AUTH_SECRET={secrets.token_urlsafe(32)}\n")
+        (target / ".env").write_text(local)
     if not args.files_only:
         if not (target / ".git").exists():
             subprocess.run(["git", "init", "-b", "main"], cwd=target, env=env, check=True)

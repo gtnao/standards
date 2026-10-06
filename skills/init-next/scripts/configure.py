@@ -4,18 +4,19 @@
 import argparse
 import json
 import re
+import secrets
 from pathlib import Path
 
 
 RUNTIME = {
     "next", "react", "react-dom", "@mantine/core", "@mantine/hooks",
     "@tabler/icons-react", "next-intl", "react-hook-form", "@hookform/resolvers", "zod",
-    "@prisma/client", "@prisma/adapter-pg", "pg",
+    "@prisma/client", "@prisma/adapter-pg", "pg", "better-auth", "@better-auth/prisma-adapter",
 }
 DEVELOPMENT = {
     "typescript", "@types/node", "@types/react", "@types/react-dom",
     "@biomejs/biome", "babel-plugin-react-compiler", "postcss",
-    "postcss-preset-mantine", "postcss-simple-vars", "vitest", "prisma", "@next/env",
+    "postcss-preset-mantine", "postcss-simple-vars", "vitest", "prisma", "@next/env", "auth",
 }
 GENERATED = {
     "README.md", "tsconfig.json", "biome.json", "next.config.ts",
@@ -54,6 +55,7 @@ def main():
         assert versions["dependencies"]["@mantine/core"] == versions["dependencies"]["@mantine/hooks"], "Match Mantine versions."
         assert versions["devDependencies"]["prisma"] == versions["dependencies"]["@prisma/client"] == versions["dependencies"]["@prisma/adapter-pg"], "Match Prisma versions."
         assert versions["devDependencies"]["@next/env"] == versions["dependencies"]["next"], "Match @next/env to Next.js."
+        assert versions["devDependencies"]["auth"] == versions["dependencies"]["better-auth"] == versions["dependencies"]["@better-auth/prisma-adapter"], "Match Better Auth versions."
         for name, prefix in (("nodeImage", "node:"), ("postgresImage", "postgres:")):
             assert versions[name].startswith(prefix) and re.fullmatch(r"[\w./:-]+@sha256:[a-f0-9]{64}", versions[name]), f"Pin image tag and digest: {name}"
         assert versions["nodeImage"].startswith(f'node:{versions["node"]}-'), "Match Docker and package.json Node versions."
@@ -87,6 +89,8 @@ def main():
             "db:generate": "prisma generate",
             "db:migrate": "prisma migrate dev --create-only",
             "db:deploy": "prisma migrate deploy",
+            "auth:generate": "auth generate --config ./auth.schema.config.ts --adapter prisma --dialect postgresql",
+            "auth:create-admin": "auth create-admin --config ./auth.admin.config.ts",
         },
         "dependencies": versions["dependencies"], "devDependencies": versions["devDependencies"],
     })
@@ -113,7 +117,7 @@ packages:
         files["CLAUDE.md"] = claude.rstrip() + "\n\n@AGENTS.md\n" if claude else "@AGENTS.md\n"
     ignore = (target / ".gitignore").read_text() if (target / ".gitignore").exists() else ""
     files[".gitignore"] = ignore.rstrip() + "\n\n.env\n.env.*\n!.env.example\n/messages/*.d.json.ts\n.vitest/\n/src/prisma/generated/\n"
-    files[".env"] = files[".env.example"]
+    files[".env"] = files[".env.example"].replace("BETTER_AUTH_SECRET=\n", f"BETTER_AUTH_SECRET={secrets.token_urlsafe(32)}\n")
     for rel, contents in files.items():
         path = target / rel
         path.parent.mkdir(parents=True, exist_ok=True)

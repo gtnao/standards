@@ -2,6 +2,7 @@
 
 Adminプラグインで管理者がユーザーを作成し、メール・パスワードによるログイン・ログアウトと、DBに保存するセッションを用意する。
 テナントを持たない構成として、Organizationプラグインは使わない。メール確認・パスワード再設定は後から追加する。
+初期構成に含め、ホームを`requireSession()`で保護してログアウトのボタンを置く。
 
 [利用時の方針](../implementation/better-auth.md)も参照する。
 
@@ -53,6 +54,8 @@ src/
     server.ts
     client.ts
   app/
+    page.tsx
+    _components/sign-out-button.tsx
     api/auth/[...all]/route.ts
     sign-in/
       page.tsx
@@ -174,6 +177,7 @@ BETTER_AUTH_SECRET: z.string().min(32),
 
 ローカルのURLは`http://localhost:3000`、本番は実際に公開するHTTPSのURLにする。
 秘密鍵は`openssl rand -base64 32`などで生成し、実行環境から渡す。`NEXT_PUBLIC_*`にはしない。
+`.env.example`には鍵を空のまま載せる。ローカルの`.env`にはプロジェクトごとに生成した値を入れ、他のプロジェクトや本番と共有しない。
 
 `src/auth/server.ts`：
 
@@ -370,6 +374,7 @@ pnpm run auth:create-admin \
 [PrismaのDocker設定](prisma.md#ciとdocker)を引き継ぐ。
 認証用schemaの生成は設定変更時に行い、CI・Dockerではコミット済みschemaからPrisma Clientを生成する。
 DB接続情報・認証の秘密鍵は実行時だけ渡す。
+ルートのCLI用設定は[Dockerの許可リスト](docker.md#dockerignore)へ追加せず、イメージに含めない。
 
 ## 参考
 

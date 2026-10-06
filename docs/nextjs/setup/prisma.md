@@ -44,8 +44,8 @@ datasource db {
 }
 ```
 
-初期構成ではモデルを置かず、`prisma/migrations/`も作らない。実際に扱うモデルを追加するときに、最初のマイグレーションを作成する。
-モデルがなくても`prisma generate`は成功するため、空のschemaのまま型チェック・ビルドできる。
+初期構成のモデルは[認証用](better-auth.md#schemaの生成と適用)の4つだけとし、そのマイグレーションを`prisma/migrations/`に含める。
+業務のモデルは実装時に追加し、その都度マイグレーションを作成する。
 旧`prisma-client-js`ではなく、出力先を明示する`prisma-client`を使う。
 生成コードは手編集せず、`.gitignore`に`/src/prisma/generated/`を追加する。schemaとmigrationsはGit管理する。
 

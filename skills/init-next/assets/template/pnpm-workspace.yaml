@@ -16,3 +16,10 @@ allowBuilds:
   "@swc/core@1.16.2": false
   prisma@7.9.1: true
   "@prisma/engines@7.9.1": true
+
+trustPolicyExclude:
+  # Resolved by @babel/core through the Better Auth CLI (auth@1.7.6). This 6.x
+  # maintenance release from npm/node-semver was published without provenance
+  # after 7.x releases that have it. It has no install scripts or dependencies.
+  # Remove once the CLI no longer resolves it.
+  - "semver@6.3.1"

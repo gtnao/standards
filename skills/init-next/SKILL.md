@@ -1,6 +1,6 @@
 ---
 name: init-next
-description: Generate a Next.js App Router project from a reviewed, locked template with pnpm, Mantine, next-intl, React Hook Form, Zod, PostgreSQL Compose, Prisma, Docker, CI and implementation standards.
+description: Generate a Next.js App Router project from a reviewed, locked template with pnpm, Mantine, next-intl, React Hook Form, Zod, PostgreSQL Compose, Prisma, Better Auth, Docker, CI and implementation standards.
 ---
 
 # Next.js scaffold
@@ -15,9 +15,17 @@ Use the user's target directory, empty except for an optional `.git`. Resolve th
 python3 /path/to/init-next/scripts/generate.py /absolute/project/path
 ```
 
-By default, copy the reviewed files, replace the project name, create `.env` from `.env.example` (the local Compose database URL), initialize Git if needed, run `pnpm install --frozen-lockfile`, run `aqua install`, and register hooks with `aqua exec -- lefthook install`. Complete these steps as part of the skill; do not hand them back to the user as follow-up work. Use `--name lowercase-name` if needed.
+By default, copy the reviewed files, replace the project name, create `.env` from `.env.example` (the local Compose database URL and a generated Better Auth secret), initialize Git if needed, run `pnpm install --frozen-lockfile`, run `aqua install`, and register hooks with `aqua exec -- lefthook install`. Complete these steps as part of the skill; do not hand them back to the user as follow-up work. Use `--name lowercase-name` if needed.
 
 pnpm, aqua and Git must already be available; executable paths can be supplied with `--pnpm` and `--aqua`. Use the tools’ existing configuration and standard storage locations. Preserve age/trust/build restrictions; report a blocked installation rather than weakening them or silently changing versions. Do not claim preparation is complete when a prerequisite or command failed.
+
+The scaffold signs users in with Better Auth and protects the home page, so it needs a database and an administrator before first use. These steps stay with the user because services are not started by default and the password is entered interactively. Report them as the next steps, and never pass a password on the command line:
+
+```sh
+docker compose up -d --wait
+pnpm run db:deploy
+pnpm run auth:create-admin --email <email> --name <name> --role admin --no-email-verified
+```
 
 Use `--files-only` only when the user explicitly requests file generation without installation. That mode needs only Python.
 
@@ -30,7 +38,7 @@ python3 /path/to/init-next/scripts/generate.py /absolute/project/path \
 
 This executes preparation without rewriting project files, `.env`, the lockfile or existing Git history. Do not stage, commit, push, change Rulesets or write outside the authorized workspace unless requested.
 
-The template includes reviewed package versions, the lockfile, build-script decisions, Action SHAs and Docker digests. Do not run version research, create-next-app or pinact during normal setup. Do not start services or run full verification by default. Report successful preparation separately from verification; the snapshot is not a claim of latest versions.
+The template includes reviewed package versions, the lockfile, build-script decisions, one reviewed trust-policy exception (semver@6.3.1, resolved through the Better Auth CLI), Action SHAs and Docker digests. Do not run version research, create-next-app or pinact during normal setup. Do not start services or run full verification by default. Report successful preparation separately from verification; the snapshot is not a claim of latest versions.
 
 ## Verify only when requested
 
@@ -45,7 +53,7 @@ Read the per-run summary and failure logs. `--only checks build dev docker` sele
 
 ## Implementing features
 
-Generated AGENTS.md links to the bundled implementation rules, and CLAUDE.md references AGENTS.md. Read only the rules relevant to requested implementation work. Merely generating the scaffold does not require reading all standards or adding models, migrations, authentication, tables, demo forms or empty architectural layers.
+Generated AGENTS.md links to the bundled implementation rules, and CLAUDE.md references AGENTS.md. Read only the rules relevant to requested implementation work. Merely generating the scaffold does not require reading all standards or adding further models, tables, demo forms or empty architectural layers.
 
 ## Maintaining the snapshot
 

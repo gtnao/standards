@@ -1,12 +1,14 @@
 {
   "name": "__PROJECT_NAME__",
   "dependencies": {
+    "@better-auth/prisma-adapter": "1.7.6",
     "@hookform/resolvers": "5.9.1",
     "@mantine/core": "9.6.3",
     "@mantine/hooks": "9.6.3",
     "@prisma/adapter-pg": "7.9.1",
     "@prisma/client": "7.9.1",
     "@tabler/icons-react": "3.48.0",
+    "better-auth": "1.7.6",
     "next": "16.3.6",
     "next-intl": "4.14.7",
     "pg": "8.23.0",
@@ -36,7 +38,9 @@
     "test:watch": "vitest",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev --create-only",
-    "db:deploy": "prisma migrate deploy"
+    "db:deploy": "prisma migrate deploy",
+    "auth:generate": "auth generate --config ./auth.schema.config.ts --adapter prisma --dialect postgresql",
+    "auth:create-admin": "auth create-admin --config ./auth.admin.config.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.14",
@@ -44,6 +48,7 @@
     "@types/node": "24.19.0",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
+    "auth": "1.7.6",
     "babel-plugin-react-compiler": "1.0.0",
     "postcss": "8.5.28",
     "postcss-preset-mantine": "1.18.0",

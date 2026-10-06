@@ -1,11 +1,24 @@
 {
   "validation": {
     "required": "入力してください",
-    "invalid": "入力内容を確認してください"
+    "invalid": "入力内容を確認してください",
+    "invalidEmail": "有効なメールアドレスを入力してください"
+  },
+  "models": {
+    "user": {
+      "email": "メールアドレス",
+      "password": "パスワード"
+    }
   },
   "pages": {
     "home": {
-      "title": "ホーム"
+      "title": "ホーム",
+      "signOut": "ログアウト"
+    },
+    "signIn": {
+      "title": "ログイン",
+      "submit": "ログイン",
+      "failed": "メールアドレスまたはパスワードが正しくありません"
     }
   }
 }

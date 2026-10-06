@@ -1,6 +1,6 @@
 # Next.jsのセットアップ
 
-新規作成は`init-next`の検証済みテンプレートを使う。通常はファイル生成・Git初期化・依存インストール・aquaのツール導入・Lefthook登録まで行う。ファイル生成のみは明示指定とし、全検証は必要なときに選ぶ。
+新規作成は`init-next`の検証済みテンプレートを使う。通常はファイル生成・Git初期化・依存インストール・aquaのツール導入・Lefthook登録まで行う。PostgreSQLの起動・マイグレーションの適用・初期管理者の作成は、生成後に行う。ファイル生成のみは明示指定とし、全検証は必要なときに選ぶ。
 
 以下はテンプレートの更新や手動導入のための設定一覧。create-next-appの生成設定へ[Base](../../base/README.md)の共通方針を反映する。
 
@@ -21,17 +21,17 @@
 | 11 | [React Hook Form](react-hook-form.md) | RHF・resolver・Zodを用意し、フォーム実装時に利用方針へ従う |
 | 12 | [環境変数](env.md) | Zodによる検証の配置と、サーバー用・公開用の境界を用意する |
 | 13 | [Docker Compose](../../base/docker-compose.md) | ローカルPostgreSQLを用意する。Next.jsはローカルで実行する |
-| 14 | [Prisma](prisma.md) | PostgreSQLへ接続するクライアント、型生成・マイグレーションのコマンドを用意する。モデルは実装時に追加する |
-| 15 | [Dockerfile](docker.md) | 本番用standaloneイメージをビルドできる状態にする |
+| 14 | [Prisma](prisma.md) | PostgreSQLへ接続するクライアント、型生成・マイグレーションのコマンドを用意する。業務のモデルは実装時に追加する |
+| 15 | [Better Auth](better-auth.md) | メール・パスワード認証、Admin、DBセッション、ログイン画面を用意する。CLIの導入に信頼性検証の例外を1件設ける |
+| 16 | [Dockerfile](docker.md) | 本番用standaloneイメージをビルドできる状態にする |
 
 [コーディング方針](../../base/coding-guidelines.md)と[実装方針](../implementation/README.md)を、生成されたAGENTS.mdの管理ブロック外から参照する。
-手動導入・テンプレート更新時は、依存のインストール後にlint・型チェック・テスト・ビルド、PostgreSQLの起動とPrismaからの接続、本番イメージの起動を確認する。
+手動導入・テンプレート更新時は、依存のインストール後にlint・型チェック・テスト・ビルド、PostgreSQLの起動とマイグレーションの適用、本番イメージでのログインを確認する。
 
 ## 機能を追加するときの導入
 
 | 項目 | 設定するもの |
 | --- | --- |
-| [Better Auth](better-auth.md) | メール・パスワード認証、Admin、DBセッション |
 | [Worker](worker.md) | 非同期ジョブのローカル起動、Webと共有するコードの境界 |
 | [TanStack Table・nuqs](table.md) | テーブル操作とURL同期に必要な依存・Provider |
 

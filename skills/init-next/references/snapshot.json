@@ -11,12 +11,14 @@
     "checkout": "3d3c42e5aac5ba805825da76410c181273ba90b1",
     "pnpmAction": "ea17c68df8912ef543352723c149a84f56e3d413",
     "dependencies": {
+      "@better-auth/prisma-adapter": "1.7.6",
       "@hookform/resolvers": "5.9.1",
       "@mantine/core": "9.6.3",
       "@mantine/hooks": "9.6.3",
       "@prisma/adapter-pg": "7.9.1",
       "@prisma/client": "7.9.1",
       "@tabler/icons-react": "3.48.0",
+      "better-auth": "1.7.6",
       "next": "16.3.6",
       "next-intl": "4.14.7",
       "pg": "8.23.0",
@@ -31,6 +33,7 @@
       "@types/node": "24.19.0",
       "@types/react": "19.3.0",
       "@types/react-dom": "19.3.0",
+      "auth": "1.7.6",
       "babel-plugin-react-compiler": "1.0.0",
       "postcss": "8.5.28",
       "postcss-preset-mantine": "1.18.0",
@@ -49,12 +52,13 @@
       "typecheck with translation probes",
       "unit test command (empty suite)",
       "production build",
-      "development HTTP and assets",
+      "development HTTP and assets on the sign-in page",
       "PostgreSQL health",
-      "Prisma Client generation with an empty schema (host and image)",
-      "Prisma CLI connection to Compose PostgreSQL",
-      "Prisma Client query from a temporary Route Handler in development (manual)",
-      "Docker build, HTTP, non-root, graceful stop"
+      "Prisma Client generation (host and image)",
+      "bundled migrations applied to a throwaway database",
+      "administrator creation through the Better Auth CLI",
+      "Docker build, sign-in page HTTP and assets, non-root, graceful stop",
+      "image on the Compose network: redirect without a session, sign-up and wrong password rejected, sign-in, redirect away from sign-in, sign-out"
     ]
   }
 }

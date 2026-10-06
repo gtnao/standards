@@ -6,20 +6,25 @@ from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from html.parser import HTMLParser
 from http.client import HTTPException
+from http.cookiejar import CookieJar
 import json
 import os
 from pathlib import Path
+import secrets
 import signal
 import socket
 import subprocess
 import time
-from urllib.error import URLError
+from urllib.error import HTTPError, URLError
 from urllib.parse import urljoin
-from urllib.request import urlopen
+from urllib.request import HTTPCookieProcessor, Request, build_opener, urlopen
 import uuid
 
 
 STAGES = ("install", "checks", "build", "dev", "docker")
+# Better Auth compares the Origin header with BETTER_AUTH_URL, not with the published port.
+ORIGIN = "http://localhost:3000"
+EMAIL = "verify@example.com"
 
 
 def main():
@@ -60,38 +65,68 @@ def main():
     def pnpm(name, *command):
         return run(name, [args.pnpm, *command])
 
-    def dev():
-        port = free_port()
-        with (output / "dev-server.log").open("w") as stream:
-            with process([args.pnpm, "run", "dev", "--hostname", "127.0.0.1", "--port", str(port)], target, env, stream) as child:
-                check_http(f"http://127.0.0.1:{port}", child)
+    auth = {}
 
-    def docker():
+    def psql(statement):
+        return ["docker", "compose", "exec", "-T", "postgres", "psql", "-U", "app", "-d", "app", "-v", "ON_ERROR_STOP=1", "-c", statement]
+
+    def prepare_auth():
+        # Every page reads a database session, so both servers need a migrated database and an administrator.
+        if auth:
+            return auth
         run("compose-config", ["docker", "compose", "config", "--quiet"])
         # Reuse healthy running PostgreSQL; only stop a container started here.
         existing = run("compose-existing", ["docker", "compose", "ps", "--status", "running", "-q", "postgres"]).strip()
-        owned = None
+        if not existing:
+            try:
+                run("postgres-start", ["docker", "compose", "up", "-d", "--wait", "--wait-timeout", "120", "postgres"], extra_env={"POSTGRES_PORT": str(free_port())})
+            finally:
+                auth["owned"] = run("postgres-id", ["docker", "compose", "ps", "-a", "-q", "postgres"]).strip()
+        else:
+            health = run("postgres-health", ["docker", "inspect", "--format", "{{.State.Health.Status}}", existing]).strip()
+            if health != "healthy":
+                raise RuntimeError(f"Existing PostgreSQL is {health}; left unchanged")
+        auth["postgres"] = existing or auth["owned"]
+        # A throwaway database: the development data and migration history stay untouched.
+        address = run("postgres-port", ["docker", "compose", "port", "postgres", "5432"]).strip()
+        database = "verify_" + uuid.uuid4().hex[:12]
+        run("database-create", psql(f'CREATE DATABASE "{database}"'))
+        auth["database"] = database
+        auth["secrets"] = {"BETTER_AUTH_URL": ORIGIN, "BETTER_AUTH_SECRET": secrets.token_urlsafe(32)}
+        auth["host_env"] = auth["secrets"] | {"DATABASE_URL": f"postgresql://app:local-password@{address}/{database}"}
+        run("migrate-deploy", [args.pnpm, "run", "db:deploy"], extra_env=auth["host_env"])
+        auth["password"] = secrets.token_urlsafe(18)
+        run("create-admin", [args.pnpm, "run", "auth:create-admin", "--email", EMAIL, "--name", "Verify", "--role", "admin", "--no-email-verified", "--password", auth["password"]], extra_env=auth["host_env"])
+        return auth
+
+    def cleanup_auth():
+        # Exact names/IDs only; never prune or remove project data volumes.
+        if "database" in auth:
+            subprocess.run(psql(f'DROP DATABASE IF EXISTS "{auth["database"]}" WITH (FORCE)'), cwd=target, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=30)
+        if auth.get("owned"):
+            subprocess.run(["docker", "stop", auth["owned"]], cwd=target, env=env, stdout=subprocess.DEVNULL, timeout=30)
+
+    def dev():
+        host_env = prepare_auth()["host_env"]
+        port = free_port()
+        with (output / "dev-server.log").open("w") as stream:
+            with process([args.pnpm, "run", "dev", "--hostname", "127.0.0.1", "--port", str(port)], target, env | host_env, stream) as child:
+                check_http(f"http://127.0.0.1:{port}/sign-in", child)
+
+    def docker():
+        prepare_auth()
         container = "init-next-verify-" + uuid.uuid4().hex[:12]
         image = container + ":local"
         try:
-            if not existing:
-                try:
-                    run("postgres-start", ["docker", "compose", "up", "-d", "--wait", "--wait-timeout", "120", "postgres"], extra_env={"POSTGRES_PORT": str(free_port())})
-                finally:
-                    owned = run("postgres-id", ["docker", "compose", "ps", "-a", "-q", "postgres"]).strip()
-            else:
-                health = run("postgres-health", ["docker", "inspect", "--format", "{{.State.Health.Status}}", existing]).strip()
-                if health != "healthy":
-                    raise RuntimeError(f"Existing PostgreSQL is {health}; left unchanged")
-            # Read-only statement: an existing development database keeps its data and migrations.
-            address = run("postgres-port", ["docker", "compose", "port", "postgres", "5432"]).strip()
-            statement = output / "prisma-connect.sql"
-            statement.write_text("SELECT 1;\n")
-            run("prisma-connect", [args.pnpm, "exec", "prisma", "db", "execute", "--file", str(statement)], extra_env={"DATABASE_URL": f"postgresql://app:local-password@{address}/app"})
             run("docker-build", ["docker", "build", "-t", image, "."], timeout=1200)
-            run("docker-start", ["docker", "run", "-d", "--init", "--name", container, "-p", "127.0.0.1::3000", image])
+            # Join the Compose network: PostgreSQL is published on the host loopback only.
+            network = run("postgres-network", ["docker", "inspect", "--format", "{{range $name, $_ := .NetworkSettings.Networks}}{{$name}}{{end}}", auth["postgres"]]).strip()
+            app_env = auth["secrets"] | {"DATABASE_URL": f"postgresql://app:local-password@postgres:5432/{auth['database']}"}
+            run("docker-start", ["docker", "run", "-d", "--init", "--name", container, "--network", network, "-p", "127.0.0.1::3000", *(part for key, value in app_env.items() for part in ("-e", f"{key}={value}")), image])
             binding = json.loads(run("docker-port", ["docker", "inspect", "--format", '{{json (index .NetworkSettings.Ports "3000/tcp")}}', container]))
-            check_http(f"http://127.0.0.1:{binding[0]['HostPort']}")
+            base = f"http://127.0.0.1:{binding[0]['HostPort']}"
+            check_http(base + "/sign-in")
+            check_auth(base, auth["password"])
             uid = run("runtime-user", ["docker", "exec", container, "id", "-u"]).strip()
             if uid == "0":
                 raise RuntimeError("Runtime user is root")
@@ -103,11 +138,8 @@ def main():
         finally:
             with (output / "docker-server.log").open("w") as stream:
                 subprocess.run(["docker", "logs", container], cwd=target, env=env, stdout=stream, stderr=subprocess.STDOUT, timeout=30)
-            # Exact names/IDs only; never prune or remove project data volumes.
             for command in (["docker", "rm", "-f", container], ["docker", "image", "rm", image]):
                 subprocess.run(command, cwd=target, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=30)
-            if owned:
-                subprocess.run(["docker", "stop", owned], cwd=target, env=env, check=True, stdout=subprocess.DEVNULL, timeout=30)
 
     started = time.monotonic()
     failure = None
@@ -148,6 +180,7 @@ def main():
     except (Exception, KeyboardInterrupt) as error:
         failure = str(error) or "Interrupted"
     finally:
+        cleanup_auth()
         report = {"target": str(target), "stages": args.only, "seconds": round(time.monotonic()-started, 2), "results": results, "error": failure}
         (output / "summary.json").write_text(json.dumps(report, indent=2) + "\n")
     print(f"{'FAIL' if failure else 'PASS'}: {report['seconds']}s; report: {output / 'summary.json'}", flush=True)
@@ -201,6 +234,35 @@ def check_http(base, child=None):
         with urlopen(urljoin(base, path), timeout=15) as response:
             if response.status != 200:
                 raise RuntimeError(f"Asset request failed: {path}")
+
+
+def check_auth(base, password):
+    opener = build_opener(HTTPCookieProcessor(CookieJar()))
+
+    def post(path, body):
+        request = Request(base + path, data=json.dumps(body).encode(), headers={"Content-Type": "application/json", "Origin": ORIGIN})
+        try:
+            with opener.open(request, timeout=15) as response:
+                return response.status
+        except HTTPError as error:
+            return error.code
+
+    def landing(path):
+        with opener.open(base + path, timeout=15) as response:
+            return response.url.removeprefix(base)
+
+    checks = (
+        ("Home must redirect to sign-in without a session", lambda: landing("/") == "/sign-in"),
+        ("Public sign-up must be disabled", lambda: post("/api/auth/sign-up/email", {"email": "new@example.com", "password": password, "name": "New"}) == 400),
+        ("A wrong password must be rejected", lambda: post("/api/auth/sign-in/email", {"email": EMAIL, "password": password + "x"}) == 401),
+        ("The administrator must be able to sign in", lambda: post("/api/auth/sign-in/email", {"email": EMAIL, "password": password}) == 200),
+        ("Home must render with a session", lambda: landing("/") == "/"),
+        ("Sign-in must redirect to home with a session", lambda: landing("/sign-in") == "/"),
+        ("Sign-out must end the session", lambda: post("/api/auth/sign-out", {}) == 200 and landing("/") == "/sign-in"),
+    )
+    for message, passed in checks:
+        if not passed():
+            raise RuntimeError(message)
 
 
 class Assets(HTMLParser):
