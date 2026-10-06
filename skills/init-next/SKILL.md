@@ -5,7 +5,7 @@ description: Scaffold a Next.js App Router project with pnpm, Mantine, next-intl
 
 # Next.js scaffold
 
-Create the project with the official create-next-app generator, then apply the self-contained template in this skill. Read [version selection and generation](references/setup.md) and the template's [directory](assets/template/docs/directory-structure.md), [coding](assets/template/docs/coding-guidelines.md), [forms/i18n](assets/template/docs/forms-and-i18n.md) and [environment](assets/template/docs/environment.md) rules before implementing.
+Create the project with the official create-next-app generator, then apply the self-contained template in this skill. Read [version selection and generation](references/setup.md), the bundled [setup index](assets/template/docs/standards/nextjs/setup/README.md), [coding guidelines](assets/template/docs/standards/base/coding-guidelines.md), and [directory rules](assets/template/docs/standards/nextjs/implementation/directory-structure.md). The [implementation index](assets/template/docs/standards/nextjs/implementation/README.md) routes later feature work to its relevant rules.
 
 ## Scope
 
@@ -13,7 +13,7 @@ Use the user's target directory, initially empty except for an optional `.git`. 
 
 The scaffold includes Mantine, Tabler Icons, Japanese next-intl, React Hook Form, Zod, Biome, Node.js Vitest tests, aqua-managed Lefthook/pinact, GitHub Actions, PostgreSQL Compose and a production Dockerfile. Docker Compose and Dockerfile are required initial files. Next.js itself runs locally during development.
 
-Keep `.env` and `.env.example` empty until actual variables are needed. The server environment module is ready for Zod fields; do not invent secrets, API endpoints, database access code, forms, authentication, ORM/migrations or empty architectural layers. Implement actual product behavior only when requested.
+Keep `.env` and `.env.example` empty until actual variables are needed. The server environment module is ready for Zod fields; do not invent secrets, API endpoints, database access code, forms, authentication, ORM/migrations or empty architectural layers. Implement actual product behavior only when requested. Still copy all bundled standards and link the implementation index from AGENTS.md, so later work follows the Prisma, authentication, query and table rules without installing those features in the initial scaffold.
 
 Only write inside the authorized project/workspace. Package managers, create-next-app, Docker and aqua can write caches or settings elsewhere: configure project-local caches/configuration when required by the user's restrictions. Do not install skills globally, modify another checkout, create remote repositories, change Rulesets, commit or push unless requested.
 
@@ -56,3 +56,7 @@ Confirm that typecheck generates next-intl declarations on a clean tree and that
 Stop only the processes/containers started for verification. Do not delete user data volumes or prune unrelated Docker resources. Remove temporary version metadata and test probes once they are reflected in project files.
 
 If required tools, network access or permissions are unavailable, complete independent file work and report the specific unverified steps. Do not label configuration as tested based solely on reading the template. Report the location, current versions selected, completed checks and remaining limitations.
+
+## Maintaining this skill
+
+In the standards repository, edit canonical documents under `docs/`, then run `python3 skills/init-next/scripts/sync_standards.py`. Check with `--check` before distributing the skill. The bundle preserves Base and CLI link targets as well as Next.js documents, so generated projects do not depend on this repository being present. Do not maintain a separate summary of the same rules.

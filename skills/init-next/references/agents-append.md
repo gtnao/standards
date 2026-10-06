@@ -1,11 +1,8 @@
 ## Project standards
 
-Read these before implementing changes:
+Read [coding guidelines](docs/standards/base/coding-guidelines.md) and [directory rules](docs/standards/nextjs/implementation/directory-structure.md) before implementation. Use the [implementation index](docs/standards/nextjs/implementation/README.md) to read the rules relevant to the current feature: forms/i18n, environment, Prisma, queries, tables or authentication. Use the [setup index](docs/standards/nextjs/setup/README.md) when adding dependencies or changing project configuration.
 
-- [Coding guidelines](docs/coding-guidelines.md)
-- [Directory structure](docs/directory-structure.md)
-- [Forms and i18n](docs/forms-and-i18n.md)
-- [Environment](docs/environment.md)
+These documents define how to implement a requested feature; their presence does not require adding every feature to the application.
 
 Use pnpm and the runtime versions in package.json. Run aqua-managed tools through `aqua exec --`. Preserve supply-chain restrictions and review dependency install scripts individually.
 
