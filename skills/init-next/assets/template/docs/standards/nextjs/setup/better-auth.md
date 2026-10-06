@@ -2,7 +2,7 @@
 
 Adminプラグインで管理者がユーザーを作成し、メール・パスワードによるログイン・ログアウトと、DBに保存するセッションを用意する。
 テナントを持たない構成として、Organizationプラグインは使わない。メール確認・パスワード再設定は後から追加する。
-初期構成に含め、ホームを`requireSession()`で保護してログアウトのボタンを置く。
+初期構成に含め、認証済みの画面を[共通レイアウト](../implementation/layout.md)で囲み、そのユーザーメニューからログアウトする。
 
 [利用時の方針](../implementation/better-auth.md)も参照する。
 
@@ -54,8 +54,10 @@ src/
     server.ts
     client.ts
   app/
-    page.tsx
-    _components/sign-out-button.tsx
+    (app)/
+      layout.tsx
+      page.tsx
+      _components/account-menu.tsx
     api/auth/[...all]/route.ts
     sign-in/
       page.tsx

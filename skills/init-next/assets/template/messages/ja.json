@@ -11,9 +11,12 @@
     }
   },
   "pages": {
-    "home": {
-      "title": "ホーム",
+    "shared": {
+      "appName": "__PROJECT_NAME__",
       "signOut": "ログアウト"
+    },
+    "home": {
+      "title": "ホーム"
     },
     "signIn": {
       "title": "ログイン",

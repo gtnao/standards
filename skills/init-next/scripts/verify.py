@@ -251,12 +251,16 @@ def check_auth(base, password):
         with opener.open(base + path, timeout=15) as response:
             return response.url.removeprefix(base)
 
+    def home_has_navbar():
+        with opener.open(base + "/", timeout=15) as response:
+            return "mantine-AppShell-navbar" in response.read().decode()
+
     checks = (
         ("Home must redirect to sign-in without a session", lambda: landing("/") == "/sign-in"),
         ("Public sign-up must be disabled", lambda: post("/api/auth/sign-up/email", {"email": "new@example.com", "password": password, "name": "New"}) == 400),
         ("A wrong password must be rejected", lambda: post("/api/auth/sign-in/email", {"email": EMAIL, "password": password + "x"}) == 401),
         ("The administrator must be able to sign in", lambda: post("/api/auth/sign-in/email", {"email": EMAIL, "password": password}) == 200),
-        ("Home must render with a session", lambda: landing("/") == "/"),
+        ("Home must render inside the app layout with a session", lambda: landing("/") == "/" and home_has_navbar()),
         ("Sign-in must redirect to home with a session", lambda: landing("/sign-in") == "/"),
         ("Sign-out must end the session", lambda: post("/api/auth/sign-out", {}) == 200 and landing("/") == "/sign-in"),
     )

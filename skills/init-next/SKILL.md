@@ -19,7 +19,7 @@ By default, copy the reviewed files, replace the project name, create `.env` fro
 
 pnpm, aqua and Git must already be available; executable paths can be supplied with `--pnpm` and `--aqua`. Use the tools’ existing configuration and standard storage locations. Preserve age/trust/build restrictions; report a blocked installation rather than weakening them or silently changing versions. Do not claim preparation is complete when a prerequisite or command failed.
 
-The scaffold signs users in with Better Auth and protects the home page, so it needs a database and an administrator before first use. These steps stay with the user because services are not started by default and the password is entered interactively. Report them as the next steps, and never pass a password on the command line:
+The scaffold signs users in with Better Auth and shows the home page inside a navbar layout for signed-in users, so it needs a database and an administrator before first use. These steps stay with the user because services are not started by default and the password is entered interactively. Report them as the next steps, and never pass a password on the command line:
 
 ```sh
 docker compose up -d --wait

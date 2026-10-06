@@ -9,6 +9,7 @@ childrenとして渡すServer Componentも、それだけでClient Componentに�
 
 hooks・イベント処理・ブラウザーAPIを使う部分は、[配置方針](directory-structure.md#serverとclientの境界)に従ってClient Componentへ分ける。
 Server Componentから`Tabs.List`などの複合アクセスを使う場合は、`TabsList`を直接importするか、そのUIをClient側へ切り出す。
+AppShellを使う[共通レイアウト](layout.md)も、この方針で本体をServer Componentにする。
 
 ## Tabler Icons
 

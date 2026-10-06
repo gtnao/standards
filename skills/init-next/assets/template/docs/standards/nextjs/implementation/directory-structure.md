@@ -6,15 +6,19 @@
 src/
   app/
     layout.tsx
-    settings/
-      page.tsx
-      _components/
-        settings-form.tsx
-      _helpers/
-        actions.ts
-        form-schema.ts
-        view-model.ts
+    (app)/
+      layout.tsx
+      settings/
+        page.tsx
+        _components/
+          settings-form.tsx
+        _helpers/
+          actions.ts
+          form-schema.ts
+          view-model.ts
+    sign-in/
   components/
+    app-layout/
   env/
     server.ts
     public.ts
@@ -92,6 +96,9 @@ app/settings/
 usecaseなどの下位層から`app`・`components`へ依存させない。
 画面表示やNext.js固有の制御は入口側に置き、usecaseは依存と入力を受け取り、結果を返す。
 共通コンポーネントから特定のページの`_helpers`を参照せず、必要な値や処理をpropsなどで受け取る。
+認証の呼び出しや遷移先のようなアプリ固有の処理も共通コンポーネントには書かず、使う側の`_components`からコールバックなどで渡す。
+
+認証済みの画面はルートグループ`(app)`の配下に置き、[共通レイアウト](layout.md)を適用する。
 
 queriesとusecasesは入口から使い分け、相互に依存させない。queriesはPrisma・domain・libを利用でき、app・componentsへは依存しない。
 

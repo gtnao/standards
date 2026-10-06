@@ -7,6 +7,7 @@
 | --- | --- |
 | [ディレクトリ設計](directory-structure.md) | 責務・依存関係、ページへのコロケーション、共通化する場所 |
 | [Mantine・Tabler Icons](mantine.md) | Server／Client境界とアイコンの使い方 |
+| [共通レイアウト](layout.md) | 左NavbarのAppShell、ルートグループ、共通コンポーネントへ処理を渡す方法 |
 | [i18n](i18n.md) | キーの分類、完全なキーと`translate`による呼び出し |
 | [React Hook Form](react-hook-form.md) | Zod・Mantine・i18nの接続、条件付き入力と型 |
 | [環境変数](env.md) | 検証する時点、公開値、Next.js外からの利用 |

@@ -23,7 +23,8 @@
 | 13 | [Docker Compose](../../base/docker-compose.md) | ローカルPostgreSQLを用意する。Next.jsはローカルで実行する |
 | 14 | [Prisma](prisma.md) | PostgreSQLへ接続するクライアント、型生成・マイグレーションのコマンドを用意する。業務のモデルは実装時に追加する |
 | 15 | [Better Auth](better-auth.md) | メール・パスワード認証、Admin、DBセッション、ログイン画面を用意する。CLIの導入に信頼性検証の例外を1件設ける |
-| 16 | [Dockerfile](docker.md) | 本番用standaloneイメージをビルドできる状態にする |
+| 16 | [共通レイアウト](../implementation/layout.md) | 認証済みの画面を左NavbarのAppShellで囲み、ユーザーメニューからログアウトできるようにする |
+| 17 | [Dockerfile](docker.md) | 本番用standaloneイメージをビルドできる状態にする |
 
 [コーディング方針](../../base/coding-guidelines.md)と[実装方針](../implementation/README.md)を、生成されたAGENTS.mdの管理ブロック外から参照する。
 手動導入・テンプレート更新時は、依存のインストール後にlint・型チェック・テスト・ビルド、PostgreSQLの起動とマイグレーションの適用、本番イメージでのログインを確認する。

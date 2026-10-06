@@ -213,33 +213,8 @@ export default async function Page() {
 
 ## ログアウト
 
+[共通レイアウトのユーザーメニュー](layout.md#ユーザーメニューとログアウト)から行う。
 `authClient.signOut()`の後に`router.replace("/sign-in")`・`router.refresh()`を呼ぶ。初期構成では、失敗時の表示や処理中の状態は設けない。
-ホームだけで使う場合は`src/app/_components/sign-out-button.tsx`に置き、`requireSession()`で保護したページへ配置する。文言は`pages.home.signOut`に定義する。
-
-```tsx
-"use client";
-import { Button } from "@mantine/core";
-import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
-import { authClient } from "@/auth/client";
-
-export function SignOutButton() {
-  const translate = useTranslations();
-  const router = useRouter();
-
-  async function signOut() {
-    await authClient.signOut();
-    router.replace("/sign-in");
-    router.refresh();
-  }
-
-  return (
-    <Button variant="default" onClick={signOut}>
-      {translate("pages.home.signOut")}
-    </Button>
-  );
-}
-```
 
 ## 参考
 

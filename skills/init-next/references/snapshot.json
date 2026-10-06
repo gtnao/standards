@@ -58,7 +58,7 @@
       "bundled migrations applied to a throwaway database",
       "administrator creation through the Better Auth CLI",
       "Docker build, sign-in page HTTP and assets, non-root, graceful stop",
-      "image on the Compose network: redirect without a session, sign-up and wrong password rejected, sign-in, redirect away from sign-in, sign-out"
+      "image on the Compose network: redirect without a session, sign-up and wrong password rejected, sign-in, home inside the app layout, redirect away from sign-in, sign-out"
     ]
   }
 }
