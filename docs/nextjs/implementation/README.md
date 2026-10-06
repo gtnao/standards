@@ -15,5 +15,6 @@
 | [テーブル](table.md) | 共通UI、明示的な検索、ソート・ページ・URLの同期 |
 | [認証](better-auth.md) | セッション確認、ユーザー作成、ログインフォーム |
 | [AI SDK・Bedrock](../../base/ai-sdk.md) | 共通のLLM port、構造化出力・ストリーミング・Tool |
+| [非同期ジョブ](../../base/async-jobs.md) | 共通キュー・Worker、DBによる実行権と結果確定 |
 
 React・Next.js固有の規約は、合意したものを各文書へ追加していく。

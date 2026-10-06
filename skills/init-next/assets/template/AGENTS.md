@@ -10,7 +10,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Project standards
 
-Read [coding guidelines](docs/standards/base/coding-guidelines.md) and [directory rules](docs/standards/nextjs/implementation/directory-structure.md) before implementation. Use the [implementation index](docs/standards/nextjs/implementation/README.md) to read the rules relevant to the current feature: forms/i18n, environment, Prisma, queries, tables or authentication. Use the [setup index](docs/standards/nextjs/setup/README.md) when adding dependencies or changing project configuration.
+Read [coding guidelines](docs/standards/base/coding-guidelines.md) and [directory rules](docs/standards/nextjs/implementation/directory-structure.md) before implementation. Use the [implementation index](docs/standards/nextjs/implementation/README.md) to read the rules relevant to the current feature: forms/i18n, environment, Prisma, queries, tables, authentication, AI SDK/Bedrock or asynchronous jobs. Use the [setup index](docs/standards/nextjs/setup/README.md) when adding dependencies or changing project configuration.
 
 These documents define how to implement a requested feature; their presence does not require adding every feature to the application.
 

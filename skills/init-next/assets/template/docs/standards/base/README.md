@@ -12,6 +12,8 @@ CLI・Next.jsの両方で採用する土台。実行環境ごとの完成した�
 | [ディレクトリ設計](directory-structure.md) | 各層の責務・依存方向・テストしやすい依存の渡し方 |
 | [テスト](testing.md) | Node.js上のVitest設定、近接配置、明示的import、本番コードとの境界 |
 | [環境変数](env.md) | 秘密情報の扱い、Zodによる検証・変換 |
+| [AI SDK・Bedrock](ai-sdk.md) | LLMのports/adapters、認証、構造化出力・Tool・キャッシュ |
+| [非同期ジョブ](async-jobs.md) | 共通SQSキュー・Worker、DBリース、結果確定、ElasticMQ |
 | [.gitignore](gitignore.md) | 生成物とローカル設定の除外、雛形の共有 |
 | [aqua](aqua.md) | 開発ツールの版管理、pinact、Lefthook |
 | [GitHub Actions](github-actions.md) | CIの実行、権限・SHA固定・必須チェック |
