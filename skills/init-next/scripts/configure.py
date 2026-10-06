@@ -19,7 +19,7 @@ DEVELOPMENT = {
 GENERATED = {
     "README.md", "tsconfig.json", "biome.json", "next.config.ts",
     "pnpm-workspace.yaml", "src/app/layout.tsx", "src/app/page.tsx",
-    "postcss.config.mjs",
+    "postcss.config.mjs", "package.json", "AGENTS.md", "CLAUDE.md", ".gitignore",
 }
 
 
@@ -59,6 +59,7 @@ def main():
         name = package["name"]
         assert re.fullmatch(r"[a-z0-9][a-z0-9._-]*", name), "Expected an unscoped package name."
         files = {str(p.relative_to(template)): p.read_text() for p in template.rglob("*") if p.is_file()}
+        files.pop("pnpm-lock.yaml", None)
         for rel in {*files, "package.json", "AGENTS.md", "CLAUDE.md", ".gitignore", ".env"}:
             path = target / rel
             assert not any(p.is_symlink() for p in [path, *path.parents] if p != target.parent), f"Symlink in output path: {rel}"

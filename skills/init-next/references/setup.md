@@ -1,6 +1,8 @@
-# Version selection and generation
+# Refreshing the reviewed snapshot
 
-Resolve versions on every invocation using npm metadata, official release notes and publisher image manifests. Select the newest mutually compatible stable releases published at least seven days ago. This applies to create-next-app, Node, pnpm, dependencies, aqua tools/registry and Actions; the target's pnpm policy does not protect the generator or other bootstrap tools automatically.
+This is a maintainer workflow, not part of normal project creation.
+
+Resolve versions for the refresh using npm metadata, official release notes and publisher image manifests. Select the newest mutually compatible stable releases published at least seven days ago. This applies to create-next-app, Node, pnpm, dependencies, aqua tools/registry and Actions; the target's pnpm policy does not protect the generator or other bootstrap tools automatically.
 
 Use the current supported Node LTS, with matching Node type major. Match React/React DOM and Mantine core/hooks exactly. Check Next.js, React Compiler, TypeScript, Biome and next-intl compatibility, especially on major upgrades. Confirm the installed Next.js supports the selected TypeScript compiler. Keep generated runtime and Docker Node versions aligned; the Dockerfile checks the actual versions after pnpm installation.
 
@@ -102,3 +104,15 @@ Do not use `--yes` to replace these explicit choices. Inspect any new prompts/op
 - [Lefthook](https://github.com/evilmartians/lefthook)
 - [actions/checkout](https://github.com/actions/checkout)
 - [pnpm/action-setup](https://github.com/pnpm/action-setup)
+
+## Publish the refreshed template
+
+1. Create a fresh scratch project inside the authorized workspace with the selected official generator and `--skip-install`.
+2. Apply `scripts/configure.py` with the reviewed versions JSON. It deliberately omits the old lockfile so that this refresh can resolve a new dependency graph.
+3. Review build scripts and retain version-specific `allowBuilds` decisions only for reviewed versions. Generate the lockfile, run `lint:fix`, initialize Git and register Lefthook.
+4. Run `scripts/verify.py` in full. Resolve failures before publishing; do not change policy to make installation pass.
+5. Copy only scaffold files into `assets/template`, including package.json, pnpm-lock.yaml, pnpm-workspace.yaml, Action pins and image digests. Exclude node_modules, .next, .git, generated message declarations, secrets and verification output. Restore `__PROJECT_NAME__` in package.json, README and the Docker cache ID. Keep `.env.example` empty; generate `.env` locally.
+6. Keep the official AGENTS.md block and append `references/agents-append.md`; synchronize bundled standards with `scripts/sync_standards.py`. Record exact version selections and actual validation scope in `references/snapshot.json`.
+7. Generate a fresh project with `generate.py` and verify frozen installation plus the combined result. Normal consumers should not have to repeat version research or install-script review for this snapshot.
+
+The lockfile pins transitive dependencies and the resolved Node runtime. It does not disable the security policy: registry metadata or trust changes can still block installation. Refresh the reviewed snapshot when that happens rather than silently bypassing the check.

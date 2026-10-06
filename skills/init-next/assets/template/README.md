@@ -1,6 +1,7 @@
 # __PROJECT_NAME__
 
 ```sh
+git init -b main
 pnpm install --frozen-lockfile
 aqua install
 aqua exec -- lefthook install

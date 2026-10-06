@@ -1,0 +1,52 @@
+{
+  "reviewedOn": "2026-10-06",
+  "versions": {
+    "node": "24.21.0",
+    "pnpm": "12.7.0",
+    "nodeImage": "node:24.21.0-trixie-slim@sha256:8ec5d7557396cfe32d21c3f9c13072355ceab22b584578ca4bb28af31120cffe",
+    "postgresImage": "postgres:18.6-trixie@sha256:86c951e05bf56c93d95d397747fb8820ac76cc3bedb78f43abd83eedbe3666ae",
+    "aquaRegistry": "4.562.0",
+    "lefthook": "2.1.14",
+    "pinact": "5.0.0",
+    "checkout": "3d3c42e5aac5ba805825da76410c181273ba90b1",
+    "pnpmAction": "ea17c68df8912ef543352723c149a84f56e3d413",
+    "dependencies": {
+      "@hookform/resolvers": "5.9.1",
+      "@mantine/core": "9.6.3",
+      "@mantine/hooks": "9.6.3",
+      "@tabler/icons-react": "3.48.0",
+      "next": "16.3.6",
+      "next-intl": "4.14.7",
+      "react": "19.3.0",
+      "react-dom": "19.3.0",
+      "react-hook-form": "7.89.0",
+      "zod": "4.6.5"
+    },
+    "devDependencies": {
+      "@biomejs/biome": "2.5.14",
+      "@types/node": "24.19.0",
+      "@types/react": "19.3.0",
+      "@types/react-dom": "19.3.0",
+      "babel-plugin-react-compiler": "1.0.0",
+      "postcss": "8.5.28",
+      "postcss-preset-mantine": "1.18.0",
+      "postcss-simple-vars": "7.0.1",
+      "typescript": "7.0.2",
+      "vitest": "5.0.2"
+    }
+  },
+  "validation": {
+    "host": "macOS arm64",
+    "container": "Linux arm64",
+    "scope": [
+      "frozen install",
+      "lint",
+      "typecheck with translation probes",
+      "unit test command (empty suite)",
+      "production build",
+      "development HTTP and assets",
+      "PostgreSQL health",
+      "Docker build, HTTP, non-root, graceful stop"
+    ]
+  }
+}

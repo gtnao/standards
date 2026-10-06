@@ -1,66 +1,54 @@
 ---
 name: init-next
-description: Scaffold a Next.js App Router project with pnpm, Mantine, next-intl, React Hook Form, Zod, PostgreSQL Compose, production Docker, CI and shared coding standards. Use when initializing a standalone Next.js application.
+description: Generate a Next.js App Router project from a reviewed, locked template with pnpm, Mantine, next-intl, React Hook Form, Zod, PostgreSQL Compose, Docker, CI and implementation standards.
 ---
 
 # Next.js scaffold
 
-Create the project with the official create-next-app generator, then apply the self-contained template in this skill. Read [version selection and generation](references/setup.md), the bundled [setup index](assets/template/docs/standards/nextjs/setup/README.md), [coding guidelines](assets/template/docs/standards/base/coding-guidelines.md), and [directory rules](assets/template/docs/standards/nextjs/implementation/directory-structure.md). The [implementation index](assets/template/docs/standards/nextjs/implementation/README.md) routes later feature work to its relevant rules.
+Use the bundled, reviewed snapshot. Ordinary project creation needs no version research, create-next-app invocation, template inspection or full verification. Read further references only when updating the snapshot or implementing a requested feature.
 
-## Scope
+## Generate
 
-Use the user's target directory, initially empty except for an optional `.git`. Do not apply the configuration script to an existing application. When modifying an existing project, inspect differences and apply the relevant standards manually within the requested scope.
+Use the user's target directory, empty except for an optional `.git`. Resolve the script relative to this SKILL.md:
 
-The scaffold includes Mantine, Tabler Icons, Japanese next-intl, React Hook Form, Zod, Biome, Node.js Vitest tests, aqua-managed Lefthook/pinact, GitHub Actions, PostgreSQL Compose and a production Dockerfile. Docker Compose and Dockerfile are required initial files. Next.js itself runs locally during development.
+```sh
+python3 /path/to/init-next/scripts/generate.py /absolute/project/path
+```
 
-Keep `.env` and `.env.example` empty until actual variables are needed. The server environment module is ready for Zod fields; do not invent secrets, API endpoints, database access code, forms, authentication, ORM/migrations or empty architectural layers. Implement actual product behavior only when requested. Still copy all bundled standards and link the implementation index from AGENTS.md, so later work follows the Prisma, authentication, query and table rules without installing those features in the initial scaffold.
+This is the default: copy files, replace the project name and create empty `.env` and `.env.example`. It needs only Python and does not access the network, install tools, initialize Git, start services or run checks. Use `--name lowercase-name` if the directory name is not suitable as a package name.
 
-Only write inside the authorized project/workspace. Package managers, create-next-app, Docker and aqua can write caches or settings elsewhere: configure project-local caches/configuration when required by the user's restrictions. Do not install skills globally, modify another checkout, create remote repositories, change Rulesets, commit or push unless requested.
+The template includes the reviewed package versions, pnpm lockfile, version-specific build-script decisions, Action SHAs and Docker digests. Do not run pinact or replace these pins during normal generation. Report that the files were generated from the bundled snapshot, not that they are the latest versions or that the new project was fully verified.
 
-## Generate and configure
+## Prepare when requested
 
-1. On every invocation, resolve current compatible stable versions from official sources with the seven-day waiting period. Template pins are examples, not defaults to reuse. Follow [setup.md](references/setup.md) and prepare the required versions JSON outside the target directory but inside the authorized workspace.
-2. Run the selected create-next-app version with TypeScript, App Router, src, Biome, React Compiler, `--empty`, no Tailwind, `@/*`, pnpm, `--skip-install`, `--disable-git` and `--agents-md`. Verify current CLI options before invoking. Preserve its generated Next.js AGENTS.md block.
-3. Inspect generated configuration, including dependency build decisions, then run:
+When the user requests installed dependencies and usable local tooling, add:
 
-   ```sh
-   python3 /path/to/init-next/scripts/configure.py /absolute/project/path --versions /absolute/versions.json
-   ```
+```sh
+python3 /path/to/init-next/scripts/generate.py /absolute/project/path \
+  --prepare --cache-dir /absolute/workspace/init-next-cache
+```
 
-   Resolve the script relative to this SKILL.md. It merges the verified dependency versions, applies project settings, appends rules outside the generated AGENTS.md content and adds `@AGENTS.md` to CLAUDE.md. It does not install packages or initialize Git. It requires a fresh uninstalled scaffold and rejects unexpected output collisions.
-4. Review generator/template differences after major upgrades. Keep useful generated metadata, remove unused starter styles/assets, and ensure the template still matches the selected APIs. Keep README and tooling messages in English. Do not add arbitrary demo forms to exercise the installed form library.
-5. Install with pnpm. Review blocked dependency scripts individually and add only justified `allowBuilds` decisions, preferably version-specific. For previously tested native distributions, SWC and Parcel watcher could run without install scripts; recheck the actual resolved versions/platform. Inspect esbuild's script before allowing it for Vitest. Do not disable strict builds, age checks or trust verification to get a green install. Keep `pnpm-lock.yaml`.
-6. Initialize Git with `git init -b main` only if needed and not accidentally inside another repository. Install aqua tools and register hooks with `aqua install` and `aqua exec -- lefthook install`. Resolve/review Action references with `aqua exec -- pinact run --update --min-age 7`; pinact is not a CI job. Keep Lefthook limited to lint and typecheck.
+This additionally initializes Git if needed, runs frozen install, installs pinned aqua tools and registers Lefthook. pnpm, aqua and Git must already be available; executable paths can be supplied with `--pnpm` and `--aqua`. Use an authorized cache directory outside the target and reuse it across projects. Download time remains on the first run. Preserve age/trust/build restrictions; report an install failure rather than weakening them or silently changing versions.
 
-## Verify the combined result
+For an already generated project, run the preparation commands from its README with the same cache settings; do not rerun generation over existing files. Do not stage, commit, push, change Rulesets or write outside the authorized workspace unless requested.
 
-Run `pnpm run lint:fix` once after configuration, then use the verifier instead of issuing each check separately:
+## Verify only when requested
+
+Generation and preparation do not imply full verification. When explicitly requested, run:
 
 ```sh
 python3 /path/to/init-next/scripts/verify.py /absolute/project/path \
   --output /absolute/workspace/verification-results
 ```
 
-Keep the output outside the generated project, inside the authorized workspace. Use `--pnpm /absolute/path/to/pnpm` if needed. The script respects supplied cache environment variables; otherwise it places package-manager caches under the output directory. Reuse the same output directory and cache environment from installation to avoid downloading the toolchain twice.
+Supply the cache environment used during preparation to reuse downloads. Read the per-run summary and failure logs. `--only checks build dev docker` selects stages after a repair; report only what was checked. Docker and Compose verification starts temporary processes/containers and preserves data volumes. See [verification details](references/verification.md) for stages, cleanup and limitations.
 
-The verifier runs frozen install, lint/typecheck/tests, build, development HTTP checks, Compose health checks and a production Docker smoke test. It checks Japanese HTML, Mantine markup, JS/CSS responses, non-root runtime, writable cache, absence of root .env files and graceful container shutdown. Lint/typecheck/tests run in parallel; type generation, build and server startup do not overlap. It checks Git exclusions and the executable Lefthook hook without repeating lint/typecheck through the hook. Each invocation keeps logs and a `summary.json` with per-check durations in a separate run directory; partial reruns do not overwrite earlier evidence. It stops only processes/containers it started, removes its uniquely named test image/container and preserves Compose volumes.
+## Implementing features
 
-Read the summary; open individual logs only on failure. Do not repeat successful commands manually. After a repair, use `--only` with the affected stages:
+Generated AGENTS.md links to the bundled implementation rules, and CLAUDE.md references AGENTS.md. Read only the rules relevant to requested implementation work. Merely generating the scaffold does not require reading all standards or adding Prisma, authentication, tables, demo forms or empty architectural layers.
 
-| Change | Stages to rerun |
-| --- | --- |
-| Source, TypeScript, messages or framework settings | `checks build dev docker` |
-| Dockerfile or .dockerignore only | `docker` |
-| Compose only | `docker` |
-| Dependencies, lockfile or package-manager settings | Full verification |
-| Documentation only | Link checks; no application rebuild |
+## Maintaining the snapshot
 
-Partial runs verify only the selected stages; retain evidence from the preceding full run and report any unverified stages. No automatic reuse of old pass results is inferred from timestamps.
+Only when the user requests a template update, follow [refreshing the snapshot](references/setup.md): research current versions, regenerate, review install scripts and run full verification before publishing the updated bundle. [snapshot.json](references/snapshot.json) records the bundled version selection; it is not a claim of current freshness.
 
-The checks stage temporarily adds a translation type probe to the existing typecheck: invalid keys and missing interpolation arguments must be rejected. It restores the original messages and regenerates their declarations afterward, including on failure. The script does not inspect publishers/build scripts or scan arbitrary application secrets; retain the earlier dependency review and review the Docker allowlist for secret exposure. Browser/UI test infrastructure is outside this baseline. No external credentials should be required for the empty scaffold.
-
-If required tools, network access or permissions are unavailable, finish independent work and report the failed or unverified stages. Do not call the full setup verified merely because a partial run passed. Report the location, selected versions and summary of checks.
-
-## Maintaining this skill
-
-In the standards repository, edit canonical documents under `docs/`, then run `python3 skills/init-next/scripts/sync_standards.py`. Check with `--check` before distributing the skill. The bundle preserves Base and CLI link targets as well as Next.js documents, so generated projects do not depend on this repository being present. Do not maintain a separate summary of the same rules.
+In this repository, edit canonical rules under `docs/`, then run `python3 skills/init-next/scripts/sync_standards.py` and its `--check` mode. Keep the bundled AGENTS.md synchronized with `references/agents-append.md`. Consumers use the bundled files without needing this repository.

@@ -6,7 +6,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN corepack enable pnpm && pnpm --version
 
 FROM install-base AS build
-RUN --mount=type=cache,id=my-app-pnpm,target=/pnpm/store,sharing=locked \
+RUN --mount=type=cache,id=__PROJECT_NAME__-pnpm,target=/pnpm/store,sharing=locked \
     pnpm install --store-dir=/pnpm/store --frozen-lockfile
 RUN test "$(pnpm exec node --version)" = "$(/usr/local/bin/node --version)"
 COPY . .
