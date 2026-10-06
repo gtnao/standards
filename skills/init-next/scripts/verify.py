@@ -34,17 +34,10 @@ def main():
         parser.error("Target must contain package.json")
     if output == target or target in output.parents:
         parser.error("Keep logs outside the project to avoid lint/build inputs")
-    cache_root = output
     output = output / (time.strftime("run-%Y%m%d-%H%M%S-") + uuid.uuid4().hex[:6])
     output.mkdir(parents=True, exist_ok=True)
     env = os.environ.copy()
     env["NEXT_TELEMETRY_DISABLED"] = "1"
-    # Keep bootstrap tooling writes within the explicitly selected workspace.
-    for key, folder in {
-        "XDG_CACHE_HOME": "cache", "XDG_DATA_HOME": "data", "XDG_CONFIG_HOME": "config",
-        "PNPM_HOME": "pnpm-home", "COREPACK_HOME": "corepack", "npm_config_cache": "npm-cache",
-    }.items():
-        env.setdefault(key, str(cache_root / folder))
     results = []
 
     def run(name, command, timeout=600, extra_env=None):

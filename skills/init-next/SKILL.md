@@ -12,21 +12,20 @@ Use the bundled, reviewed snapshot. Ordinary project creation needs no version r
 Use the user's target directory, empty except for an optional `.git`. Resolve the script relative to this SKILL.md:
 
 ```sh
-python3 /path/to/init-next/scripts/generate.py /absolute/project/path \
-  --cache-dir /absolute/workspace/init-next-cache
+python3 /path/to/init-next/scripts/generate.py /absolute/project/path
 ```
 
 By default, copy the reviewed files, replace the project name, create empty `.env` and `.env.example`, initialize Git if needed, run `pnpm install --frozen-lockfile`, run `aqua install`, and register hooks with `aqua exec -- lefthook install`. Complete these steps as part of the skill; do not hand them back to the user as follow-up work. Use `--name lowercase-name` if needed.
 
-pnpm, aqua and Git must already be available; executable paths can be supplied with `--pnpm` and `--aqua`. Choose an authorized cache directory outside the target and reuse it across projects. Download time remains on the first run. Preserve age/trust/build restrictions; report a blocked installation rather than weakening them or silently changing versions. Do not claim preparation is complete when a prerequisite or command failed.
+pnpm, aqua and Git must already be available; executable paths can be supplied with `--pnpm` and `--aqua`. Use the tools’ existing configuration and standard storage locations. Preserve age/trust/build restrictions; report a blocked installation rather than weakening them or silently changing versions. Do not claim preparation is complete when a prerequisite or command failed.
 
-Use `--files-only` only when the user explicitly requests file generation without installation. That mode needs only Python and does not require `--cache-dir`.
+Use `--files-only` only when the user explicitly requests file generation without installation. That mode needs only Python.
 
 For an already generated project or a retry after a preparation failure:
 
 ```sh
 python3 /path/to/init-next/scripts/generate.py /absolute/project/path \
-  --prepare-only --cache-dir /absolute/workspace/init-next-cache
+  --prepare-only
 ```
 
 This executes preparation without rewriting project files, `.env`, the lockfile or existing Git history. Do not stage, commit, push, change Rulesets or write outside the authorized workspace unless requested.
@@ -42,7 +41,7 @@ python3 /path/to/init-next/scripts/verify.py /absolute/project/path \
   --output /absolute/workspace/verification-results
 ```
 
-Supply the cache environment used during preparation to reuse downloads. Read the per-run summary and failure logs. `--only checks build dev docker` selects stages after a repair; report only what was checked. Docker and Compose verification starts temporary processes/containers and preserves data volumes. See [verification details](references/verification.md) for stages, cleanup and limitations.
+Read the per-run summary and failure logs. `--only checks build dev docker` selects stages after a repair; report only what was checked. Docker and Compose verification starts temporary processes/containers and preserves data volumes. See [verification details](references/verification.md) for stages, cleanup and limitations.
 
 ## Implementing features
 

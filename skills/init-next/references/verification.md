@@ -2,7 +2,7 @@
 
 Run full verification when requested or before publishing a refreshed template.
 
-Keep the output outside the generated project, inside the authorized workspace. Use `--pnpm /absolute/path/to/pnpm` if needed. The script respects supplied cache environment variables; otherwise it places package-manager caches under the output directory. Reuse the same output directory and cache environment from installation to avoid downloading the toolchain twice.
+Keep the output outside the generated project, inside the authorized workspace. Use `--pnpm /absolute/path/to/pnpm` if needed. Tool configuration and storage locations are inherited from the invoking environment.
 
 The verifier runs frozen install, lint/typecheck/tests, build, development HTTP checks, Compose health checks and a production Docker smoke test. It checks Japanese HTML, Mantine markup, JS/CSS responses, non-root runtime, writable cache, absence of root .env files and graceful container shutdown. Lint/typecheck/tests run in parallel; type generation, build and server startup do not overlap. It checks Git exclusions and the executable Lefthook hook without repeating lint/typecheck through the hook. Each invocation keeps logs and a `summary.json` with per-check durations in a separate run directory; partial reruns do not overwrite earlier evidence. It stops only processes/containers it started, removes its uniquely named test image/container and preserves Compose volumes.
 

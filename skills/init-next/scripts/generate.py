@@ -18,7 +18,6 @@ def main():
     mode.add_argument("--files-only", action="store_true", help="Copy files without installing tools or initializing Git")
     mode.add_argument("--prepare-only", action="store_true", help="Prepare an existing scaffold without rewriting files")
     mode.add_argument("--prepare", action="store_true", help=argparse.SUPPRESS)
-    parser.add_argument("--cache-dir", type=Path, help="Tool caches within the authorized workspace (required unless --files-only)")
     parser.add_argument("--pnpm", default="pnpm")
     parser.add_argument("--aqua", default="aqua")
     args = parser.parse_args()
@@ -38,22 +37,11 @@ def main():
         parser.error("Target must be empty except for an optional .git directory")
     if (target / ".git").is_symlink() or ((target / ".git").exists() and not (target / ".git").is_dir()):
         parser.error("Use a standalone repository, not a linked worktree")
-    if not args.files_only and not args.cache_dir:
-        parser.error("Preparation requires --cache-dir inside the authorized workspace")
     env = os.environ.copy()
     if not args.files_only:
         for executable in (args.pnpm, args.aqua, "git"):
             if not shutil.which(executable):
                 parser.error(f"Required executable not found: {executable}")
-        cache = args.cache_dir.resolve()
-        if cache == target or target in cache.parents:
-            parser.error("Keep tool caches outside the generated project")
-        for key, folder in {
-            "XDG_CACHE_HOME": "cache", "XDG_DATA_HOME": "data", "XDG_CONFIG_HOME": "config",
-            "PNPM_HOME": "pnpm-home", "COREPACK_HOME": "corepack", "npm_config_cache": "npm-cache",
-            "AQUA_ROOT_DIR": "aqua",
-        }.items():
-            env[key] = str(cache / folder)
     template = Path(__file__).resolve().parent.parent / "assets/template"
     if not args.prepare_only:
         target.mkdir(parents=True, exist_ok=True)
