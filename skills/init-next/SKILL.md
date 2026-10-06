@@ -7,30 +7,31 @@ description: Generate a Next.js App Router project from a reviewed, locked templ
 
 Use the bundled, reviewed snapshot. Ordinary project creation needs no version research, create-next-app invocation, template inspection or full verification. Read further references only when updating the snapshot or implementing a requested feature.
 
-## Generate
+## Generate and prepare
 
 Use the user's target directory, empty except for an optional `.git`. Resolve the script relative to this SKILL.md:
 
 ```sh
-python3 /path/to/init-next/scripts/generate.py /absolute/project/path
+python3 /path/to/init-next/scripts/generate.py /absolute/project/path \
+  --cache-dir /absolute/workspace/init-next-cache
 ```
 
-This is the default: copy files, replace the project name and create empty `.env` and `.env.example`. It needs only Python and does not access the network, install tools, initialize Git, start services or run checks. Use `--name lowercase-name` if the directory name is not suitable as a package name.
+By default, copy the reviewed files, replace the project name, create empty `.env` and `.env.example`, initialize Git if needed, run `pnpm install --frozen-lockfile`, run `aqua install`, and register hooks with `aqua exec -- lefthook install`. Complete these steps as part of the skill; do not hand them back to the user as follow-up work. Use `--name lowercase-name` if needed.
 
-The template includes the reviewed package versions, pnpm lockfile, version-specific build-script decisions, Action SHAs and Docker digests. Do not run pinact or replace these pins during normal generation. Report that the files were generated from the bundled snapshot, not that they are the latest versions or that the new project was fully verified.
+pnpm, aqua and Git must already be available; executable paths can be supplied with `--pnpm` and `--aqua`. Choose an authorized cache directory outside the target and reuse it across projects. Download time remains on the first run. Preserve age/trust/build restrictions; report a blocked installation rather than weakening them or silently changing versions. Do not claim preparation is complete when a prerequisite or command failed.
 
-## Prepare when requested
+Use `--files-only` only when the user explicitly requests file generation without installation. That mode needs only Python and does not require `--cache-dir`.
 
-When the user requests installed dependencies and usable local tooling, add:
+For an already generated project or a retry after a preparation failure:
 
 ```sh
 python3 /path/to/init-next/scripts/generate.py /absolute/project/path \
-  --prepare --cache-dir /absolute/workspace/init-next-cache
+  --prepare-only --cache-dir /absolute/workspace/init-next-cache
 ```
 
-This additionally initializes Git if needed, runs frozen install, installs pinned aqua tools and registers Lefthook. pnpm, aqua and Git must already be available; executable paths can be supplied with `--pnpm` and `--aqua`. Use an authorized cache directory outside the target and reuse it across projects. Download time remains on the first run. Preserve age/trust/build restrictions; report an install failure rather than weakening them or silently changing versions.
+This executes preparation without rewriting project files, `.env`, the lockfile or existing Git history. Do not stage, commit, push, change Rulesets or write outside the authorized workspace unless requested.
 
-For an already generated project, run the preparation commands from its README with the same cache settings; do not rerun generation over existing files. Do not stage, commit, push, change Rulesets or write outside the authorized workspace unless requested.
+The template includes reviewed package versions, the lockfile, build-script decisions, Action SHAs and Docker digests. Do not run version research, create-next-app or pinact during normal setup. Do not start services or run full verification by default. Report successful preparation separately from verification; the snapshot is not a claim of latest versions.
 
 ## Verify only when requested
 
