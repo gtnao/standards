@@ -11,6 +11,7 @@
 | [React Hook Form](react-hook-form.md) | Zod・Mantine・i18nの接続、条件付き入力と型 |
 | [環境変数](env.md) | 検証する時点、公開値、Next.js外からの利用 |
 | [Prisma](prisma.md) | schemaの命名、依存関係の例外、usecasesでの利用 |
+| [Server Actions](server-actions.md) | 更新の入口、認証・検証、usecaseとの分担、戻り値 |
 | [Queries](queries.md) | find/list/search、取得条件・返却型・ページ計算 |
 | [テーブル](table.md) | 共通UI、明示的な検索、ソート・ページ・URLの同期 |
 | [認証](better-auth.md) | セッション確認、ユーザー作成、ログインフォーム |

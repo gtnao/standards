@@ -106,6 +106,7 @@ domainも生成型へ依存できるが、DB接続・クエリ実行は持ち込
 
 `_helpers`にはサーバー側とクライアント側の処理が入り得るため、実行場所の異なる処理はファイルを分ける。
 例えばServer Actionsと、フォームからも使う入力スキーマを同じファイルへ混ぜない。
+Actionの命名・入力検証・usecaseとの分担は[Server Actionsの方針](server-actions.md)に従う。
 サーバー専用の通常モジュールには`server-only`を使い、Client側への誤importを検出する。
 `"use server"`はServer Functionsを定義する指定であり、サーバー専用の補助関数すべてに付けるものではない。
 
