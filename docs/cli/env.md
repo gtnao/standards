@@ -8,8 +8,8 @@ Node.js 24の標準機能で読み込み、Zodで値を検証・変換する。
 ```json
 {
   "scripts": {
-    "dev": "tsx --env-file-if-exists=.env src/index.ts",
-    "start": "node --enable-source-maps dist/index.js"
+    "dev": "tsx --env-file-if-exists=.env src/entrypoints/cli/index.ts",
+    "start": "node --enable-source-maps dist/entrypoints/cli/index.js"
   }
 }
 ```

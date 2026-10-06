@@ -216,7 +216,7 @@ export function SearchInput({ value, label, submitLabel, maxLength, onSearch }: 
 
 IMEの変換確定に使うEnterでは検索しない。変換確定後も、検索ボタンまたはEnterで実行する。
 ページ側から`value={search.q}`・`onSearch={submitSearch}`・検索条件で定義した`maxLength`を渡す。
-入力欄とボタンのラベルは、[i18nの方針](../setup/i18n.md)に従って翻訳済みの文字列を渡す。
+入力欄とボタンのラベルは、[i18nの方針](i18n.md)に従って翻訳済みの文字列を渡す。
 
 ## 共通テーブルとページ側の接続
 

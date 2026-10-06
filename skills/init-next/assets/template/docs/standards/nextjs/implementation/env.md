@@ -57,6 +57,8 @@ Next.jsが置換できるよう、`process.env.NEXT_PUBLIC_API_ORIGIN`と静的�
 スキーマ自体を検証したい場合は、純粋な検証部分を分離する。
 
 VitestやORM設定など、Next.js外でも同じ`.env`読み込み規則が必要になった場合は`@next/env`の`loadEnvConfig()`を使う。
+ローカル用CLI・Workerでは`loadEnvConfig(process.cwd(), process.env.NODE_ENV !== "production")`とし、開発用のファイルを読む。本番では`NODE_ENV=production`を設定する。`NODE_ENV=test`ではテスト用の読み込み順になり、`.env.local`は読まれない。
+`NODE_ENV=test`以外では、第2引数を省略すると本番用のファイルが選ばれる。
 初期設定で実際の秘密情報をテストへ自動ロードする必要はない。
 
 ## 参考

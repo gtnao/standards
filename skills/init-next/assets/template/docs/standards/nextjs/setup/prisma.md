@@ -55,7 +55,7 @@ import nextEnv from "@next/env";
 import { defineConfig } from "prisma/config";
 import { z } from "zod";
 
-nextEnv.loadEnvConfig(process.cwd());
+nextEnv.loadEnvConfig(process.cwd(), process.env.NODE_ENV !== "production");
 const databaseUrl = z.string().min(1).optional().parse(process.env.DATABASE_URL);
 export default defineConfig({
   schema: "prisma/schema.prisma",
@@ -196,12 +196,6 @@ pnpm run db:deploy
 
 アプリのstandaloneイメージとマイグレーションの実行環境は役割が異なる。
 マイグレーションを実行するデプロイジョブには、Prisma CLIを含む依存・CLI設定・schema・migrationsを用意する。standaloneイメージにCLIまで含まれるとは扱わない。
-
-## 検証範囲
-
-2026年10月3日、Node.js 24.21.0・Next.js 16.3.6・Prisma 7.9.1・PostgreSQL 18.6のLinux arm64環境で確認した。
-共通のpnpm設定を維持したインストール、クライアント生成、型チェック、`migrate dev`・`migrate deploy`が成功した。
-DB接続情報なしでNext.js・Dockerをビルドし、standaloneイメージからPostgreSQLへの書き込み・読み取りも確認した。
 
 ## 参考
 

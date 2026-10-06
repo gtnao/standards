@@ -14,7 +14,7 @@
 | 4 | [TypeScript](typescript.md)・[Biome](biome.md) | Next.jsの生成型とReactを含めて検査する |
 | 5 | [.gitignore](../../base/gitignore.md) | 生成された除外設定を維持し、`.env.example`を共有対象にする |
 | 6 | [aqua](../../base/aqua.md) | pinact・Lefthookを導入し、lint・typecheckのフックを登録する |
-| 7 | [テスト](../../base/testing.md) | BaseのNode.js向けVitest設定を採用する |
+| 7 | [テスト](vitest.md) | BaseのNode.js向けVitest設定にパスエイリアスを加える |
 | 8 | [GitHub Actions](../../base/github-actions.md) | ActionをSHA固定し、lint・typecheck・test・buildを実行する |
 | 9 | [Mantine・Tabler Icons](mantine.md) | CSS・Provider・PostCSSを設定する |
 | 10 | [i18n](i18n.md) | 日本語のnext-intlと、キー・埋め込み引数の型検査を設定する |
@@ -24,7 +24,7 @@
 | 14 | [Dockerfile](docker.md) | 本番用standaloneイメージをビルドできる状態にする |
 
 [コーディング方針](../../base/coding-guidelines.md)と[実装方針](../implementation/README.md)を、生成されたAGENTS.mdの管理ブロック外から参照する。
-依存のインストール後にlint・型チェック・テスト・ビルド、PostgreSQLと本番イメージの起動を確認する。
+手動導入・テンプレート更新時は、依存のインストール後にlint・型チェック・テスト・ビルド、PostgreSQLと本番イメージの起動を確認する。
 
 ## 機能を追加するときの導入
 
@@ -32,6 +32,7 @@
 | --- | --- |
 | [Prisma](prisma.md) | PostgreSQLへのアクセス、型生成、マイグレーション |
 | [Better Auth](better-auth.md) | メール・パスワード認証、Admin、DBセッション |
+| [Worker](worker.md) | 非同期ジョブのローカル起動、Webと共有するコードの境界 |
 | [TanStack Table・nuqs](table.md) | テーブル操作とURL同期に必要な依存・Provider |
 
 導入時にはそれぞれの実装方針も適用し、CI・Dockerに必要な設定を反映する。

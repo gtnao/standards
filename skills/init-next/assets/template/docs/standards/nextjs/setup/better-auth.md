@@ -263,7 +263,7 @@ import { adminOptions } from "./src/auth/admin";
 import { authOptions } from "./src/auth/options";
 import { PrismaClient } from "./src/prisma/generated/client";
 
-nextEnv.loadEnvConfig(process.cwd());
+nextEnv.loadEnvConfig(process.cwd(), process.env.NODE_ENV !== "production");
 const env = z
   .object({
     DATABASE_URL: z.string().min(1),

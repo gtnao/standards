@@ -100,15 +100,14 @@ import { z } from "zod";
 import { createFileReader } from "../../adapters/file-reader.js";
 import { summarize } from "../../usecases/summarize.js";
 
-const env = z.object({
-  INPUT_ROOT: z.string().min(1),
-}).parse(process.env);
-
 export default defineCommand({
   args: {
     path: { type: "string", required: true },
   },
   run: async ({ args }) => {
+    const env = z.object({
+      INPUT_ROOT: z.string().min(1),
+    }).parse(process.env);
     const deps = {
       fileReader: createFileReader({ root: env.INPUT_ROOT }),
     };

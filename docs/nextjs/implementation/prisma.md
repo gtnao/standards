@@ -29,7 +29,7 @@ model UserProfile {
 | Client Components | 必要な生成型やbrowser-safeなenum。クライアント生成モジュールは参照しない |
 
 PrismaのAPIを隠すだけのrepository・portは作らない。
-Next.jsと[別プロセスのWorker](../../base/async-jobs.md#nextjsとの共有部分)で共有する場合は、クライアント生成部分を切り出し、Workerから`server-only`付きのモジュールをimportしない。
+Next.jsと[別プロセスのWorker](../setup/worker.md#nextjsとの共有部分)で共有する場合は、クライアント生成部分を切り出し、Workerから`server-only`付きのモジュールをimportしない。
 生成型は`generated/models`、enumは`generated/enums`など責務に合う公開エントリーから参照し、`generated/internal`には依存しない。
 `src/prisma`からqueries・usecases・domainへ逆向きに依存させない。
 

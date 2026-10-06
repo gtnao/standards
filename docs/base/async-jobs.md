@@ -5,6 +5,8 @@ SQSは実行を促す通知、DBは状態・実行権・結果の正とする。
 
 計算の重複は許容し、有効な実行権を持つ処理だけが業務データを確定できるようにする。
 
+キューの接続設定は[SQS・ElasticMQ](elasticmq.md)、Next.jsと同じプロジェクトでの起動は[Workerの設定](../nextjs/setup/worker.md)を参照。
+
 ## メッセージとテーブル
 
 メッセージには種別とIDだけを載せる。Workerは種別からハンドラーを選び、必要なデータをDBから取得する。
@@ -258,101 +260,6 @@ heartbeatの間隔だけでなく、DB・SQSへの通信時間を含めてリー
 各I/Oに有限のタイムアウトを設け、処理全体の期限もジョブ種別ごとに必須とする。heartbeatで永久に実行権を保持させない。
 visibilityの延長には最初の受信から12時間の上限がある。これを超える処理は分割する。
 
-## ElasticMQとローカル起動
-
-[PostgreSQLのCompose](docker-compose.md)へ次のサービスを追加し、ルートに`elasticmq.conf`を置く。
-
-```yaml
-services:
-  elasticmq:
-    image: softwaremill/elasticmq-native:1.7.1@sha256:e4580ab9ad1bd5cd37b4ba04911bc5ccc8cd2d9ab4de56ece65acee71c24e05c
-    ports:
-      - "127.0.0.1:${SQS_PORT:-9324}:9324"
-    volumes:
-      - ./elasticmq.conf:/opt/elasticmq.conf:ro
-```
-
-```hocon
-include classpath("application.conf")
-node-address.host = "*"
-rest-sqs.bind-hostname = "0.0.0.0"
-queues {
-  jobs {
-    defaultVisibilityTimeout = 90 seconds
-    receiveMessageWait = 20 seconds
-    deadLettersQueue {
-      name = "jobs-dlq"
-      maxReceiveCount = 10
-    }
-  }
-  jobs-dlq {}
-}
-```
-
-起動時に共通キューとDLQを作る。ローカルのキューは使い捨てとし、この例では永続化しない。
-再作成するとDBに残るジョブの通知が失われ得るため、開発時は対象IDを再送するか、テスト用データを作り直す。
-イメージは[Dockerの固定方針](docker.md#バージョンと依存の管理)に従って更新する。
-
-`.env.example`へ追加する。
-
-```dotenv
-SQS_REGION=ap-northeast-1
-SQS_ENDPOINT=http://127.0.0.1:9324
-SQS_QUEUE_URL=http://127.0.0.1:9324/000000000000/jobs
-```
-
-ポートを変更する場合は`SQS_PORT`・endpoint・queue URLを揃える。
-Zodでregionを非空文字列、endpointとqueue URLをURLとして検証する。endpointは省略可能にし、空文字は未指定へ変換する。
-
-```sh
-pnpm add @aws-sdk/client-sqs
-pnpm add -D tsx
-```
-
-adapterで生成するクライアント：
-
-```ts
-const client = new SQSClient({
-  region: config.region,
-  ...(config.endpoint
-    ? {
-        endpoint: config.endpoint,
-        credentials: { accessKeyId: "local", secretAccessKey: "local" },
-      }
-    : {}),
-});
-```
-
-`SQS_ENDPOINT`はローカルのElasticMQ専用とし、本番では未指定にする。
-本番はAWS SDKの標準認証チェーンでIAM Roleを使う。ローカルの仮認証情報はSQSクライアントにだけ渡し、環境変数のAWS認証情報を上書きしない。
-これにより、同じWorkerから[Bedrock](ai-sdk.md#環境変数と認証)へProfile認証で接続できる。
-
-adapterは`SendMessageCommand`・`ReceiveMessageCommand`・`DeleteMessageCommand`・`ChangeMessageVisibilityCommand`へ対応付ける。
-Workerの受信ループを開始する前に`GetQueueAttributesCommand`で接続先キューを確認する。Composeの起動完了だけでAPIの準備完了と判断しない。
-
-Next.jsプロジェクトのscripts：
-
-```json
-{
-  "worker:dev": "pnpm run db:generate && tsx src/entrypoints/worker.ts"
-}
-```
-
-Workerは明示的に起動・停止する。ファイル変更による自動再起動は初期設定に含めない。
-`worker.ts`でNext.jsと同じ版の`@next/env`を使い、`loadEnvConfig(process.cwd(), process.env.NODE_ENV !== "production")`で環境変数を読み込んでから、Zodで検証する。
-本番でもこの読み込みを使うなら`@next/env`は実行時依存へ移す。
-
-### Next.jsとの共有部分
-
-既存の`server-only`付きPrisma・envモジュールを、そのままtsxからimportしない。
-Workerを追加する際は、Prisma生成部分を`src/prisma/create-client.ts`の`createPrismaClient(databaseUrl)`へ切り出す。
-Next.jsの`getPrisma()`は既存の`server-only`境界と再利用処理を保ち、このfactoryを呼ぶ。
-Workerはfactoryから作ったクライアントをハンドラーへ渡し、終了時に切断する。
-
-環境変数も、Worker用の検証を`src/env/worker.ts`に置き、共通のスキーマだけ必要に応じて共有する。
-WorkerへWeb専用の設定を要求せず、`next/headers`などリクエスト依存のAPIも持ち込まない。
-本番WorkerはWebのstandalone出力に自動で含まれるものではないため、デプロイ時はWorker用のビルド・起動対象を別途用意する。
-
 ## 定期的な整合処理とDLQ
 
 登録後の送信漏れを回復する定期処理はオプショナル。
@@ -367,7 +274,6 @@ DLQからの自動失敗確定も、古い通知と現在の再実行を区別�
 
 ## 参考
 
-- [ElasticMQ：設定・SQS互換API](https://github.com/softwaremill/elasticmq)
 - [SQS：重複配信](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/standard-queues-at-least-once-delivery.html)
 - [SQS：visibility timeout](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-visibility-timeout.html)
 - [SQS：long polling](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-short-and-long-polling.html)

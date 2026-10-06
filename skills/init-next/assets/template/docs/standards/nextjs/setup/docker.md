@@ -124,30 +124,7 @@ docker run --rm --init -p 127.0.0.1:3000:3000 my-app
 サーバー側でも静的生成時に参照する値はビルドに影響する。`NEXT_PUBLIC_*`はビルド時に埋め込まれるため、実行時の差し替えを前提にしない。
 必要なビルド時変数は用途ごとに追加し、秘密情報をDockerfileの`ARG`・`ENV`へ埋め込まない。
 
-## 検証範囲
-
-2026年10月1日、Linux/arm64でNode.js 24.21.0・pnpm 12.6.0・Next.js 16.3.6・React 19.3.0・TypeScript 7.0.2を使用した。
-React Compilerを有効にし、共通のpnpmセキュリティ設定を例外なしで適用した構成で、次を確認した。
-
-- イメージのビルドと非rootでの起動。
-- ページ・JS・CSS・publicファイルのHTTP応答。
-- 画像最適化、ISRの生成・再検証とディスクへの書き込み。
-- 動的なRoute Handlerで、起動時に渡した環境変数を読み取れること。
-- ルート・src・public内の`.env`類がビルド対象に入らないこと。
-- publicがない状態でのビルド・起動。
-- SIGTERMで、強制終了を待たずに停止すること。
-
-上記の基本構成に加え、同日、Mantine 9.6.2・Tabler Icons 3.48.0・next-intl 4.14.6を組み合わせた構成も検証した。
-[依存のinstall scriptの判断](i18n.md#依存のinstall-script)を追加し、セキュリティ設定を維持したまま、次を確認した。
-
-- standaloneイメージのビルドと非rootでの起動。
-- 生成ファイルがない状態からの`next typegen && tsc --noEmit`。
-- Server／Client双方の翻訳で、不正なキー・引数の不足・名前や型の誤りが型エラーになること。
-- 日本語のサーバー描画・Client Componentの初期描画、MantineとTablerのHTML出力。
-- JS・CSS・publicファイルのHTTP応答と、Mantine向けPostCSS処理の適用。
-
-ブラウザー上の操作・hydrationは検証範囲に含めていない。
-amd64・複数コンテナ構成は未検証。依存や構成を変更した場合も、standaloneに必要ファイルが含まれるかと、実行時の権限を確認する。
+依存や構成を変更した場合は、standaloneに必要なファイルが含まれるかと、実行時の書き込み権限を確認する。
 
 ## 参考
 

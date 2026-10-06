@@ -3,7 +3,9 @@
 Node.js 24で実行するアプリの設定例。TypeScript 7系を使い、設定例は6系でも利用できる。
 バンドラーは使わず、開発はtsx、型チェック・ビルドはtsc、本番実行はNode.jsとする。
 [package.jsonの共通設定](../base/package-json.md)で`"type": "module"`を設定し、ソースを`src/`に置く。
-テストを含む初期構成では、続けて[Vitestの設定](vitest.md#型チェックとビルドを分ける)を反映し、型チェック対象を広げてビルド設定を分離する。
+型チェックは設定ファイルやテストも含め、出力用の設定は`tsconfig.build.json`に分ける。
+
+ルートの`tsconfig.json`：
 
 ```json
 {
@@ -12,9 +14,6 @@ Node.js 24で実行するアプリの設定例。TypeScript 7系を使い、設�
     "target": "ES2024",
     "lib": ["ES2024"],
     "types": ["node"],
-
-    "rootDir": "src",
-    "outDir": "dist",
 
     "strict": true,
     "noUncheckedIndexedAccess": true,
@@ -25,7 +24,22 @@ Node.js 24で実行するアプリの設定例。TypeScript 7系を使い、設�
     "skipLibCheck": true,
     "sourceMap": true
   },
-  "include": ["src/**/*.ts"]
+  "include": ["**/*"],
+  "exclude": ["node_modules", "dist"]
+}
+```
+
+ルートの`tsconfig.build.json`：
+
+```json
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist"
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/**/*.test.ts", "src/**/__tests__/**"]
 }
 ```
 
@@ -41,10 +55,10 @@ Node.js 24で実行するアプリの設定例。TypeScript 7系を使い、設�
 ```json
 {
   "scripts": {
-    "dev": "tsx src/index.ts",
+    "dev": "tsx --env-file-if-exists=.env src/entrypoints/cli/index.ts",
     "typecheck": "tsc --noEmit",
-    "build": "tsc",
-    "start": "node --enable-source-maps dist/index.js"
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node --enable-source-maps dist/entrypoints/cli/index.js"
   }
 }
 ```
@@ -56,7 +70,7 @@ Node.js 24で実行するアプリの設定例。TypeScript 7系を使い、設�
 | `build` | 型チェックしてJavaScriptを生成する |
 | `start` | 生成済みのJavaScriptをNode.jsで実行する |
 
-watchは初期設定に含めない。サーバー開発など、変更時の自動再起動が必要な用途では`tsx watch src/index.ts`を使う。
+watchは初期設定に含めない。サーバー開発など、変更時の自動再起動が必要な用途では`tsx watch --env-file-if-exists=.env src/entrypoints/cli/index.ts`を使う。
 
 tsx自体は型チェックしないため、開発中も`typecheck`を使う。
 また、tsxは拡張子の省略などを許容するので、「tsxで動いた」と「生成したJavaScriptがNode.jsで動く」は同じではない。
@@ -78,7 +92,7 @@ tsconfigは本番のNode.jsに合わせ、CIなどでビルド後の実行も確
 今回の相対importは、`.ts`内でも出力後の拡張子で書く。
 
 ```ts
-// src/index.tsからsrc/foo.tsを読み込む
+// 同じディレクトリのfoo.tsを読み込む
 import { foo } from "./foo.js";
 ```
 
@@ -105,20 +119,19 @@ Node.js 24向けの基準としてES2024を選ぶ。`@tsconfig/node24`もES2024�
 TypeScript 6以降では`types`の既定値が空配列になっている。古い設定例のように、インストールしただけで自動的に読み込まれるとは考えない。
 通常のimport先の型をすべて列挙する項目ではない。
 
-### rootDir・outDir・include
+### 型チェックとビルドを分ける
 
-| 項目 | 意味 |
-| --- | --- |
-| `rootDir: "src"` | 出力時のディレクトリ構造の基準を`src`にする |
-| `outDir: "dist"` | 生成物を`dist`に置く |
-| `include: ["src/**/*.ts"]` | コンパイル対象の探索範囲を`src`内の`.ts`にする |
+`tsconfig.json`の`include: ["**/*"]`で本番コード・テスト・設定ファイル・開発用スクリプトを型チェックする。
+`vitest.config.ts`などを個別に列挙せず、追加時の取りこぼしを防ぐ。`allowJs`を有効にしていないため、JavaScriptは対象にしない。
+依存パッケージと生成物は`exclude`で探索から除外する。生成先が増えたら追加し、実行環境が異なるコードは専用のtsconfigに分ける。
 
-この組み合わせで、`src/index.ts`は`dist/index.js`になる。
-TypeScript 6以降では`rootDir`の既定値がtsconfigのあるディレクトリなので、`src`を明示する。
+`tsconfig.build.json`は`include`・`exclude`を置き換え、`src`内の本番コードだけを出力する。
+`rootDir: "src"`と`outDir: "dist"`により、`src/entrypoints/cli/index.ts`は`dist/entrypoints/cli/index.js`になる。
+TypeScript 6以降では`rootDir`の既定値がtsconfigのあるディレクトリなので、ビルド側で`src`を明示する。
+共通側に残すと、ルート直下の設定ファイルが範囲外になる。
 
-`rootDir`は対象ファイルを選ぶ設定ではない。また、`include`の外でもimportされたファイルは対象になる。
-テストや開発用スクリプトを追加する場合は、それらも型チェック対象に含め、ビルド対象と分ける。
-具体例は[Vitestの初期設定](vitest.md)を参照。
+`exclude`はimportを禁止しない。本番コードからテストを参照するとビルドに含まれ得るため、[共通のLint制限](../base/testing.md#本番コードからテストへのimportを制限する)も適用する。
+tscは古い生成物を削除しないので、配置変更時は`dist`を削除してビルドし直す。
 
 ### 共通の型チェック設定
 

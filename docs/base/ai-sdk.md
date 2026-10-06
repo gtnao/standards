@@ -51,7 +51,7 @@ AWS_PROFILE: z.string().trim().transform((value) => value || undefined).optional
 ```ts
 const llm = createBedrockLlm({
   region: env.BEDROCK_REGION,
-  profile: env.AWS_PROFILE,
+  ...(env.AWS_PROFILE ? { profile: env.AWS_PROFILE } : {}),
 });
 ```
 

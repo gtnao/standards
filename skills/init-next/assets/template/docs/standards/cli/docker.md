@@ -1,7 +1,7 @@
 # CLI・バッチ用Dockerイメージの初期設定
 
 [Dockerの共通方針](../base/docker.md)を、TypeScriptをtscでビルドしてNode.jsで実行する構成に適用する。
-[Vitestの設定](vitest.md#型チェックとビルドを分ける)に合わせ、`pnpm run build`は`tsc -p tsconfig.build.json`を実行する。
+[TypeScriptの設定](tsconfig.md#型チェックとビルドを分ける)に合わせ、`pnpm run build`は`tsc -p tsconfig.build.json`を実行する。
 
 ルートに`Dockerfile`を置く。
 
@@ -31,7 +31,7 @@ COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 COPY package.json ./
 USER node
-CMD ["node", "--enable-source-maps", "dist/index.js"]
+CMD ["node", "--enable-source-maps", "dist/entrypoints/cli/index.js"]
 ```
 
 Nodeのバージョン・digestは検証済みの例。導入時にはlockfileで確定したNodeに合わせ、対応するイメージのdigestを確認する。

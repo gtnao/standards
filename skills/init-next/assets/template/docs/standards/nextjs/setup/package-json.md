@@ -61,7 +61,7 @@ Next.jsもESMの`next.config.ts`に対応している。CommonJSが必要な設�
 | `lint:fix` | 生成時の`format: "biome format --write"`を置き換える。整形・import整理・安全なLint修正をまとめて適用する |
 
 型生成と型チェックの詳細は[Next.jsのTypeScript設定](typescript.md#実行コマンド)、Biomeの設定とコマンドは[Next.jsのBiome設定](biome.md)を参照。
-`test`・`test:watch`は[BaseのVitest設定](../../base/testing.md)と併せて追加する。Next.jsでもNode.js上のユニットテストには共通設定を使う。
+`test`・`test:watch`は[Next.jsのVitest設定](vitest.md)と併せて追加する。Next.jsでもNode.js上のユニットテストには共通設定を使う。
 
 ## 依存バージョンの調整
 
