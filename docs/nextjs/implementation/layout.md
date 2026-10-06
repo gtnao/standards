@@ -1,7 +1,8 @@
 # 共通レイアウト
 
 認証済みの画面は、左にNavbarを置くMantineのAppShellで囲む。ヘッダーは置かない。
-Navbarには上からアプリ名、画面へのリンク、ログアウトを含むユーザーメニューを並べる。
+Navbarには上からロゴ、画面へのリンク、ログアウトを含むユーザーメニューを並べる。
+配色や各部の見た目は[画面デザイン](design.md)に従う。
 
 [Mantineの利用方針](mantine.md)と[ディレクトリ設計](directory-structure.md)に従う。
 
@@ -21,6 +22,7 @@ src/
       app-layout.tsx
       navigation-links.tsx
       user-menu.tsx
+    app-logo.tsx
 ```
 
 | ファイル | 種別 | 役割 |
@@ -44,9 +46,9 @@ import {
   AppShellMain,
   AppShellNavbar,
   AppShellSection,
-  Text,
 } from "@mantine/core";
 import type { ReactNode } from "react";
+import { AppLogo } from "@/components/app-logo";
 import { type NavigationItem, NavigationLinks } from "./navigation-links";
 
 type Props = {
@@ -63,7 +65,7 @@ export function AppLayout({ appName, navigation, userMenu, children }: Props) {
     <AppShell navbar={{ width: 240, breakpoint: 0 }} padding="md">
       <AppShellNavbar p="xs">
         <AppShellSection p="xs">
-          <Text fw={700}>{appName}</Text>
+          <AppLogo name={appName} />
         </AppShellSection>
 
         <AppShellSection grow component="nav">
@@ -73,7 +75,7 @@ export function AppLayout({ appName, navigation, userMenu, children }: Props) {
         <AppShellSection>{userMenu}</AppShellSection>
       </AppShellNavbar>
 
-      <AppShellMain>{children}</AppShellMain>
+      <AppShellMain bg="gray.0">{children}</AppShellMain>
     </AppShell>
   );
 }
@@ -93,7 +95,7 @@ export function AppLayout({ appName, navigation, userMenu, children }: Props) {
 
 ```tsx
 "use client";
-import { NavLink } from "@mantine/core";
+import { NavLink, Stack } from "@mantine/core";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
@@ -111,16 +113,27 @@ type Props = {
 export function NavigationLinks({ items }: Props) {
   const pathname = usePathname();
 
-  return items.map((item) => (
-    <NavLink
-      key={item.href}
-      component={Link}
-      href={item.href}
-      label={item.label}
-      leftSection={item.icon}
-      active={isActive(pathname, item.href)}
-    />
-  ));
+  return (
+    <Stack gap={4}>
+      {items.map((item) => {
+        const active = isActive(pathname, item.href);
+        return (
+          <NavLink
+            key={item.href}
+            component={Link}
+            href={item.href}
+            label={item.label}
+            leftSection={item.icon}
+            active={active}
+            color="gray"
+            c={active ? "bright" : "dimmed"}
+            fw={500}
+            bdrs="md"
+          />
+        );
+      })}
+    </Stack>
+  );
 }
 
 function isActive(pathname: string, href: string) {
@@ -141,7 +154,7 @@ function isActive(pathname: string, href: string) {
 
 ```tsx
 "use client";
-import { Menu, NavLink } from "@mantine/core";
+import { Avatar, Menu, NavLink } from "@mantine/core";
 import { IconLogout, IconSelector } from "@tabler/icons-react";
 
 type Props = {
@@ -158,6 +171,9 @@ export function UserMenu({ user, labels, onSignOut }: Props) {
           component="button"
           label={user.name}
           description={user.email}
+          noWrap
+          leftSection={<Avatar name={user.name} color="initials" size={32} />}
+          bdrs="md"
           rightSection={<IconSelector size={16} aria-hidden="true" />}
         />
       </Menu.Target>

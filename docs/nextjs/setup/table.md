@@ -15,6 +15,7 @@ import {
 } from "@mantine/core";
 import { NextIntlClientProvider } from "next-intl";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
+import { theme } from "./_helpers/theme";
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
@@ -25,7 +26,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body>
         <NuqsAdapter>
           <NextIntlClientProvider>
-            <MantineProvider defaultColorScheme="light">
+            <MantineProvider theme={theme} defaultColorScheme="light">
               {children}
             </MantineProvider>
           </NextIntlClientProvider>

@@ -1,10 +1,17 @@
-import { Title } from "@mantine/core";
 import { getTranslations } from "next-intl/server";
 import { requireSession } from "@/auth/server";
+import { PageHeader } from "@/components/page-header";
 
 export default async function Page() {
-  await requireSession();
+  const session = await requireSession();
   const translate = await getTranslations();
 
-  return <Title>{translate("pages.home.title")}</Title>;
+  return (
+    <PageHeader
+      title={translate("pages.home.title")}
+      description={translate("pages.home.greeting", {
+        name: session.user.name,
+      })}
+    />
+  );
 }

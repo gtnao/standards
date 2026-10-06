@@ -6,6 +6,8 @@
 src/
   app/
     layout.tsx
+    _helpers/
+      theme.ts
     (app)/
       layout.tsx
       settings/

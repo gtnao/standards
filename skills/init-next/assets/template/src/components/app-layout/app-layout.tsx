@@ -3,9 +3,9 @@ import {
   AppShellMain,
   AppShellNavbar,
   AppShellSection,
-  Text,
 } from "@mantine/core";
 import type { ReactNode } from "react";
+import { AppLogo } from "@/components/app-logo";
 import { type NavigationItem, NavigationLinks } from "./navigation-links";
 
 type Props = {
@@ -22,7 +22,7 @@ export function AppLayout({ appName, navigation, userMenu, children }: Props) {
     <AppShell navbar={{ width: 240, breakpoint: 0 }} padding="md">
       <AppShellNavbar p="xs">
         <AppShellSection p="xs">
-          <Text fw={700}>{appName}</Text>
+          <AppLogo name={appName} />
         </AppShellSection>
 
         <AppShellSection grow component="nav">
@@ -32,7 +32,7 @@ export function AppLayout({ appName, navigation, userMenu, children }: Props) {
         <AppShellSection>{userMenu}</AppShellSection>
       </AppShellNavbar>
 
-      <AppShellMain>{children}</AppShellMain>
+      <AppShellMain bg="gray.0">{children}</AppShellMain>
     </AppShell>
   );
 }

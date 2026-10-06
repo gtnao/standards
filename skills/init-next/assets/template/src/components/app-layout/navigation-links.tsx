@@ -1,5 +1,5 @@
 "use client";
-import { NavLink } from "@mantine/core";
+import { NavLink, Stack } from "@mantine/core";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
@@ -17,16 +17,27 @@ type Props = {
 export function NavigationLinks({ items }: Props) {
   const pathname = usePathname();
 
-  return items.map((item) => (
-    <NavLink
-      key={item.href}
-      component={Link}
-      href={item.href}
-      label={item.label}
-      leftSection={item.icon}
-      active={isActive(pathname, item.href)}
-    />
-  ));
+  return (
+    <Stack gap={4}>
+      {items.map((item) => {
+        const active = isActive(pathname, item.href);
+        return (
+          <NavLink
+            key={item.href}
+            component={Link}
+            href={item.href}
+            label={item.label}
+            leftSection={item.icon}
+            active={active}
+            color="gray"
+            c={active ? "bright" : "dimmed"}
+            fw={500}
+            bdrs="md"
+          />
+        );
+      })}
+    </Stack>
+  );
 }
 
 function isActive(pathname: string, href: string) {

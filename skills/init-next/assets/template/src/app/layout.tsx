@@ -5,6 +5,7 @@ import {
   mantineHtmlProps,
 } from "@mantine/core";
 import { NextIntlClientProvider } from "next-intl";
+import { theme } from "./_helpers/theme";
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
@@ -14,7 +15,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       </head>
       <body>
         <NextIntlClientProvider>
-          <MantineProvider defaultColorScheme="light">
+          <MantineProvider theme={theme} defaultColorScheme="light">
             {children}
           </MantineProvider>
         </NextIntlClientProvider>

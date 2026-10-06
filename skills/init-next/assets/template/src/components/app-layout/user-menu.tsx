@@ -1,5 +1,5 @@
 "use client";
-import { Menu, NavLink } from "@mantine/core";
+import { Avatar, Menu, NavLink } from "@mantine/core";
 import { IconLogout, IconSelector } from "@tabler/icons-react";
 
 type Props = {
@@ -16,6 +16,9 @@ export function UserMenu({ user, labels, onSignOut }: Props) {
           component="button"
           label={user.name}
           description={user.email}
+          noWrap
+          leftSection={<Avatar name={user.name} color="initials" size={32} />}
+          bdrs="md"
           rightSection={<IconSelector size={16} aria-hidden="true" />}
         />
       </Menu.Target>

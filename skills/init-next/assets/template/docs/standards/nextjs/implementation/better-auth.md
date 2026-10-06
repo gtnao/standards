@@ -68,15 +68,7 @@ export function createFormSchema(messages: FormMessages) {
 ```tsx
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Alert,
-  Button,
-  Container,
-  PasswordInput,
-  Stack,
-  TextInput,
-  Title,
-} from "@mantine/core";
+import { Alert, Button, PasswordInput, Stack, TextInput } from "@mantine/core";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Controller, useForm } from "react-hook-form";
@@ -102,76 +94,75 @@ export function AuthForm() {
   });
 
   return (
-    <Container size="xs" py="xl">
-      <form
-        noValidate
-        onSubmit={form.handleSubmit(async (values) => {
-          form.clearErrors("root");
-          try {
-            const result = await authClient.signIn.email(values);
-            if (result.error != null) {
-              form.setError("root", {
-                message: translate("pages.signIn.failed"),
-              });
-              return;
-            }
-            router.replace("/");
-            router.refresh();
-          } catch {
+    <form
+      noValidate
+      onSubmit={form.handleSubmit(async (values) => {
+        form.clearErrors("root");
+        try {
+          const result = await authClient.signIn.email(values);
+          if (result.error != null) {
             form.setError("root", {
               message: translate("pages.signIn.failed"),
             });
+            return;
           }
-        })}
-      >
-        <Stack>
-          <Title order={1}>{translate("pages.signIn.title")}</Title>
-
-          <Controller
-            control={form.control}
-            name="email"
-            render={({ field, fieldState }) => (
-              <TextInput
-                {...field}
-                type="email"
-                label={translate("models.user.email")}
-                autoComplete="email"
-                error={fieldState.error?.message}
-              />
-            )}
-          />
-          <Controller
-            control={form.control}
-            name="password"
-            render={({ field, fieldState }) => (
-              <PasswordInput
-                {...field}
-                label={translate("models.user.password")}
-                autoComplete="current-password"
-                error={fieldState.error?.message}
-              />
-            )}
-          />
-
-          {form.formState.errors.root?.message && (
-            <Alert role="alert" color="red">
-              {form.formState.errors.root.message}
-            </Alert>
+          router.replace("/");
+          router.refresh();
+        } catch {
+          form.setError("root", {
+            message: translate("pages.signIn.failed"),
+          });
+        }
+      })}
+    >
+      <Stack>
+        <Controller
+          control={form.control}
+          name="email"
+          render={({ field, fieldState }) => (
+            <TextInput
+              {...field}
+              type="email"
+              label={translate("models.user.email")}
+              autoComplete="email"
+              error={fieldState.error?.message}
+            />
           )}
-          <Button type="submit" loading={form.formState.isSubmitting}>
-            {translate("pages.signIn.submit")}
-          </Button>
-        </Stack>
-      </form>
-    </Container>
+        />
+        <Controller
+          control={form.control}
+          name="password"
+          render={({ field, fieldState }) => (
+            <PasswordInput
+              {...field}
+              label={translate("models.user.password")}
+              autoComplete="current-password"
+              error={fieldState.error?.message}
+            />
+          )}
+        />
+
+        {form.formState.errors.root?.message && (
+          <Alert role="alert" color="red">
+            {form.formState.errors.root.message}
+          </Alert>
+        )}
+        <Button type="submit" loading={form.formState.isSubmitting}>
+          {translate("pages.signIn.submit")}
+        </Button>
+      </Stack>
+    </form>
   );
 }
 ```
-`page.tsx`は、ログイン済みなら`/`へリダイレクトし、それ以外は`<AuthForm />`を返す。ログイン済みのままログイン画面を表示しない。
+`page.tsx`は、ログイン済みなら`/`へリダイレクトし、それ以外は[ログイン画面の枠](design.md#ログイン画面)にフォームを載せて返す。ログイン済みのままログイン画面を表示しない。
 
 ```tsx
+import { Center, Paper, Stack } from "@mantine/core";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { getSession } from "@/auth/server";
+import { AppLogo } from "@/components/app-logo";
 import { AuthForm } from "./_components/auth-form";
 
 export default async function Page() {
@@ -179,8 +170,18 @@ export default async function Page() {
   if (session != null) {
     redirect("/");
   }
+  const translate = await getTranslations();
 
-  return <AuthForm />;
+  return (
+    <Center mih="100dvh" bg="gray.0" p="md">
+      <Paper withBorder shadow="sm" p="xl" w="100%" maw={400}>
+        <Stack gap="lg">
+          <AppLogo name={translate("pages.shared.appName")} />
+          <AuthForm />
+        </Stack>
+      </Paper>
+    </Center>
+  );
 }
 ```
 
@@ -190,7 +191,6 @@ export default async function Page() {
 {
   "pages": {
     "signIn": {
-      "title": "ログイン",
       "submit": "ログイン",
       "failed": "メールアドレスまたはパスワードが正しくありません"
     }

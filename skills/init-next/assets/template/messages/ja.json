@@ -16,10 +16,10 @@
       "signOut": "ログアウト"
     },
     "home": {
-      "title": "ホーム"
+      "title": "ホーム",
+      "greeting": "こんにちは、{name}さん"
     },
     "signIn": {
-      "title": "ログイン",
       "submit": "ログイン",
       "failed": "メールアドレスまたはパスワードが正しくありません"
     }

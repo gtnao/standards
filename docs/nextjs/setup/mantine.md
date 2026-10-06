@@ -13,6 +13,7 @@ import {
   MantineProvider,
   mantineHtmlProps,
 } from "@mantine/core";
+import { theme } from "./_helpers/theme";
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
@@ -21,7 +22,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <ColorSchemeScript defaultColorScheme="light" />
       </head>
       <body>
-        <MantineProvider defaultColorScheme="light">
+        <MantineProvider theme={theme} defaultColorScheme="light">
           {children}
         </MantineProvider>
       </body>
@@ -74,8 +75,8 @@ OS設定に合わせる場合は、ScriptとProviderの両方を`auto`にする�
 ライト固定にする場合は、両方に`forceColorScheme="light"`を指定する。既定値をライトにすることとは異なる。
 SSR時にはブラウザーの保存値を読めないため、初期表示をカラーモードで分岐させるときはCSSで切り替える。
 
-初期テーマはMantineの既定値を使う。
-色・フォント・コンポーネントの既定propsなどを変更する段階でテーマを定義する。
+初期テーマは`src/app/_helpers/theme.ts`に定義し、基調色・角丸・見出しの大きさだけを[画面デザイン](../implementation/design.md#テーマ)の値にする。それ以外はMantineの既定値を使う。
+フォントやコンポーネントの既定propsは、変更が必要になった段階で追加する。
 関数を含むテーマや`Button.extend`などを使う場合は、Client側のProvider用コンポーネント内で組み立てる。
 
 ## import最適化
