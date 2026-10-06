@@ -17,11 +17,35 @@ pnpm add -D -E auth@1.7.6
 `auth`はschema生成・初期管理者作成に使う公式CLI。本体・Prisma adapter・CLIの版を揃える。
 バージョンは[共通の依存管理方針](../../base/pnpm-workspace.md)に従って選び、完全固定する。
 
-`auth@1.7.6`の間接依存`semver@6.3.1`は、`trustPolicy: no-downgrade`で拒否されるため、上記CLIの導入には[依存単位の審査](../../base/pnpm-workspace.md#例外の運用)が必要。信頼性チェックを一括で無効にしない。
+本体とPrisma adapterは例外なしで導入できる。CLIの`auth@1.7.6`だけは、間接依存の`semver@6.3.1`が[`trustPolicy: no-downgrade`](../../base/pnpm-workspace.md#trustpolicy)で拒否され、次のエラーで止まる。
 
 ```text
-auth.config.ts
-auth.cli.config.ts
+High-risk trust downgrade for "semver@6.3.1" (possible package takeover)
+```
+
+2026年10月6日にレジストリの情報を確認した結果は次のとおり。
+
+| 確認項目 | 内容 |
+| --- | --- |
+| 経路 | CLIが使うBabel（`@babel/core`など）が`semver@^6.3.1`を要求する。アプリの実行時依存には入らない |
+| 検出理由 | 公開元の証明が付いた7.5系より後の2023年7月10日に、6系の保守版として証明なしで公開された。[別メジャー間の公開方法の違い](../../base/pnpm-workspace.md#trustpolicy)に当たる |
+| 公開元・内容 | `npm/node-semver`のリポジトリ、`latest-6`タグ。install scriptと依存はない |
+
+この内容を導入時にも確認したうえで、[例外の運用](../../base/pnpm-workspace.md#例外の運用)に従い、この版だけを`pnpm-workspace.yaml`で除外する。
+
+```yaml
+trustPolicyExclude:
+  # Better AuthのCLI（auth@1.7.6）が使うBabel経由で解決される。
+  # 6系の保守版が、証明付きの7系より後に証明なしで公開されたための検出。
+  # CLIがこの版を解決しなくなったら削除する。
+  - "semver@6.3.1"
+```
+
+パッケージ名だけの除外や`trustPolicy`自体の無効化はしない。CLIやBabelを更新して解決される版が変わったら、例外を引き継がずに確認し直す。
+
+```text
+auth.schema.config.ts
+auth.admin.config.ts
 src/
   auth/
     options.ts
@@ -45,12 +69,32 @@ usecasesには認証済みユーザーのIDなどを引数で渡し、Next.jsの
 | --- | --- |
 | `server.ts` | Next.jsのサーバー専用。認証インスタンス・セッション取得・未認証時のリダイレクトをまとめる |
 | `client.ts` | ブラウザーから認証APIを呼ぶクライアント |
-| `options.ts` | サーバー・CLI・フォームで共有する設定。秘密情報やサーバー実装を含めない |
+| `options.ts` | サーバー・CLIで共有し、ブラウザーから参照してもよい設定。秘密情報やサーバー実装を含めない |
 | `admin.ts` | サーバーとCLIで共有するAdminプラグイン・権限・検証。ブラウザー用の設定から分離する |
+
+ルートの2ファイルは、公式CLIへ`--config`で渡すための設定。アプリの認証インスタンスは`src/auth/server.ts`であり、これらをアプリからimportしない。
+`src/`の外に置いてアプリのコード・Dockerのビルド対象と区別し、名前で用途を分ける。
+
+| ファイル | 用途 |
+| --- | --- |
+| `auth.schema.config.ts` | schemaの生成。共通設定だけを読み込み、DB接続・秘密情報を要求しない |
+| `auth.admin.config.ts` | 初期管理者の作成。DBへ接続し、リクエストの認証を経ずに管理APIを呼べる |
+
+設定ファイルのパスと固定の引数は、`package.json`のscriptsにまとめる。実行時には、都度変わる引数だけを渡す。
+
+```json
+{
+  "scripts": {
+    "auth:generate": "auth generate --config ./auth.schema.config.ts --adapter prisma --dialect postgresql",
+    "auth:create-admin": "auth create-admin --config ./auth.admin.config.ts"
+  }
+}
+```
 
 ## 設定と環境変数
 
-`src/auth/options.ts`は、認証処理・schema生成・フォームで共有する設定。Next.jsのサーバー専用処理や環境変数へ依存させず、秘密情報は`server.ts`で追加する。パスワード長はここだけで定義し、フォームの検証とエラー文言も同じ値を参照する。
+`src/auth/options.ts`は、認証処理・schema生成で共有する設定。Next.jsのサーバー専用処理や環境変数へ依存させず、秘密情報は`server.ts`で追加する。
+パスワード長はここだけで定義し、ユーザー作成時の検証も同じ値を参照する。ユーザー作成・パスワード変更のフォームで条件を示す場合もここから読む。[ログインフォーム](../implementation/better-auth.md#最小のフォーム)では長さを検証しない。
 
 ```ts
 import type { BetterAuthOptions } from "better-auth/minimal";
@@ -69,7 +113,7 @@ export const authOptions = {
 
 ## 管理者の権限とユーザー作成時の検証
 
-`src/auth/admin.ts`にAdminプラグインと共通の検証をまとめる。フォームから読み込む`options.ts`へ、サーバー側のプラグインを持ち込まない。
+`src/auth/admin.ts`にAdminプラグインと共通の検証をまとめる。ブラウザー側からも読み込める`options.ts`へ、サーバー側のプラグインを持ち込まない。
 
 ```ts
 import { APIError, createAuthMiddleware } from "better-auth/api";
@@ -81,10 +125,12 @@ import { z } from "zod";
 import { authOptions } from "./options";
 
 const ac = createAccessControl(defaultStatements);
+
 const roles = {
   admin: ac.newRole({ user: ["create", "list", "get"] }),
   user: ac.newRole({}),
 };
+
 const passwordSchema = z
   .string()
   .min(authOptions.emailAndPassword.minPasswordLength)
@@ -93,6 +139,7 @@ const passwordSchema = z
 export const adminOptions = {
   plugins: [admin({ ac, roles })],
   hooks: {
+    // Admin user creation accepts a missing or short password by default.
     before: createAuthMiddleware(async (ctx) => {
       if (ctx.path !== "/admin/create-user") {
         return;
@@ -142,12 +189,15 @@ import { adminOptions } from "./admin";
 import { authOptions } from "./options";
 
 let auth: ReturnType<typeof createAuth> | undefined;
+
 export function getAuth() {
   auth ??= createAuth();
   return auth;
 }
 
 export async function getSession() {
+  // Read the request first so that Next.js treats this as request-time work
+  // before the auth settings read secrets from the environment.
   const requestHeaders = await headers();
   return getAuth().api.getSession({ headers: requestHeaders });
 }
@@ -181,9 +231,11 @@ Prisma接続を使うため、組み込みDB接続部分を含まない`better-a
 ```ts
 import { toNextJsHandler } from "better-auth/next-js";
 import { getAuth } from "@/auth/server";
+
 export async function GET(request: Request) {
   return toNextJsHandler(getAuth()).GET(request);
 }
+
 export async function POST(request: Request) {
   return toNextJsHandler(getAuth()).POST(request);
 }
@@ -195,6 +247,7 @@ export async function POST(request: Request) {
 ```ts
 "use client";
 import { createAuthClient } from "better-auth/react";
+
 export const authClient = createAuthClient();
 ```
 同一オリジンなのでクライアント側のURL指定は不要。
@@ -202,7 +255,7 @@ export const authClient = createAuthClient();
 
 ## schemaの生成と適用
 
-ルートの`auth.config.ts`はschema生成専用とし、共通設定だけを読み込む。
+ルートの`auth.schema.config.ts`はschema生成専用とし、共通設定だけを読み込む。
 
 ```ts
 import { betterAuth } from "better-auth/minimal";
@@ -212,10 +265,10 @@ import { authOptions } from "./src/auth/options";
 export const auth = betterAuth({ ...authOptions, ...adminOptions });
 ```
 ```sh
-pnpm exec auth generate --config ./auth.config.ts --adapter prisma --dialect postgresql
+pnpm run auth:generate
 ```
 
-`--adapter prisma`を指定することで、DB接続や生成済みPrisma Clientなしでschemaを生成できる。
+scriptで`--adapter prisma`を指定しているため、DB接続や生成済みPrisma Clientなしでschemaを生成できる。
 実行時の`server-only`モジュールはCLIから読み込まない。CLI用設定を認証APIの実行に使わない。
 
 生成される基本モデルは`User`・`Session`・`Account`・`Verification`。
@@ -253,9 +306,9 @@ pnpm run db:generate
 
 ## 初期管理者の作成
 
-migration適用とPrisma Client生成を済ませてから、DBへ接続する`auth.cli.config.ts`をルートに置く。
+migration適用とPrisma Client生成を済ませてから、DBへ接続する`auth.admin.config.ts`をルートに置く。
 `@next/env`は[環境変数の方針](env.md)に従って導入し、Next.jsと同じ規則で`.env*`を読む。
-schema生成用の`auth.config.ts`と分け、生成時にはDB接続や秘密情報を要求しない。
+schema生成用の`auth.schema.config.ts`と分け、生成時にはDB接続や秘密情報を要求しない。
 
 ```ts
 import { prismaAdapter } from "@better-auth/prisma-adapter";
@@ -268,6 +321,7 @@ import { authOptions } from "./src/auth/options";
 import { PrismaClient } from "./src/prisma/generated/client";
 
 nextEnv.loadEnvConfig(process.cwd(), process.env.NODE_ENV !== "production");
+
 const env = z
   .object({
     DATABASE_URL: z.string().min(1),
@@ -279,12 +333,14 @@ const env = z
     BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
     BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
   });
+
 const prisma = new PrismaClient({
   adapter: new PrismaPg({
     connectionString: env.DATABASE_URL,
-    connectionTimeoutMillis: 5000,
+    connectionTimeoutMillis: 5_000,
   }),
 });
+
 export const auth = betterAuth({
   ...authOptions,
   ...adminOptions,
@@ -297,8 +353,7 @@ export const auth = betterAuth({
 作成先DBの環境変数を設定して実行する。
 
 ```sh
-pnpm exec auth create-admin \
-  --config ./auth.cli.config.ts \
+pnpm run auth:create-admin \
   --email admin@example.com \
   --name "管理者" \
   --role admin \

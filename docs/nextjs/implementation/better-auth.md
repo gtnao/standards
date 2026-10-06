@@ -44,24 +44,24 @@ Server Action・Route Handlerでも処理前に確認し、APIなら未認証時
 
 ```ts
 import { z } from "zod";
-import { authOptions } from "@/auth/options";
 
 type FormMessages = {
   invalidEmail: string;
-  lengthRange: string;
+  required: string;
 };
 
 export function createFormSchema(messages: FormMessages) {
   return z.object({
     email: z.email(messages.invalidEmail),
-    password: z.string()
-      .min(authOptions.emailAndPassword.minPasswordLength, messages.lengthRange)
-      .max(authOptions.emailAndPassword.maxPasswordLength, messages.lengthRange),
+    // Sign-in only checks presence: showing the password policy here would
+    // disclose it, and the server decides whether the credentials are valid.
+    password: z.string().min(1, messages.required),
   });
 }
 ```
 
-パスワードをtrim・変換しない。クライアントの検証に加えて、認証APIでもBetter Authが受信値を検証する。
+ログインでは、パスワードは未入力だけを検証する。長さなどの条件を表示すると、未ログインの相手へパスワードの条件を示すことになる。入力が正しいかはサーバーが判定する。
+パスワードをtrim・変換しない。メールアドレスの形式は秘密ではなく、入力誤りに気づけるため検証する。
 
 ログイン側の`_components/auth-form.tsx`：
 
@@ -82,17 +82,15 @@ import { useTranslations } from "next-intl";
 import { Controller, useForm } from "react-hook-form";
 import type { z } from "zod";
 import { authClient } from "@/auth/client";
-import { authOptions } from "@/auth/options";
 import { createFormSchema } from "../_helpers/form-schema";
+
 export function AuthForm() {
   const translate = useTranslations();
   const router = useRouter();
+
   const schema = createFormSchema({
     invalidEmail: translate("validation.invalidEmail"),
-    lengthRange: translate("validation.lengthRange", {
-      min: authOptions.emailAndPassword.minPasswordLength,
-      max: authOptions.emailAndPassword.maxPasswordLength,
-    }),
+    required: translate("validation.required"),
   });
   const form = useForm<
     z.input<typeof schema>,
@@ -102,6 +100,7 @@ export function AuthForm() {
     resolver: zodResolver(schema),
     defaultValues: { email: "", password: "" },
   });
+
   return (
     <Container size="xs" py="xl">
       <form
@@ -111,13 +110,17 @@ export function AuthForm() {
           try {
             const result = await authClient.signIn.email(values);
             if (result.error != null) {
-              form.setError("root", { message: translate("pages.signIn.failed") });
+              form.setError("root", {
+                message: translate("pages.signIn.failed"),
+              });
               return;
             }
             router.replace("/");
             router.refresh();
           } catch {
-            form.setError("root", { message: translate("pages.signIn.failed") });
+            form.setError("root", {
+              message: translate("pages.signIn.failed"),
+            });
           }
         })}
       >
@@ -149,6 +152,7 @@ export function AuthForm() {
               />
             )}
           />
+
           {form.formState.errors.root?.message && (
             <Alert role="alert" color="red">
               {form.formState.errors.root.message}
@@ -172,7 +176,7 @@ export function AuthForm() {
     "signIn": {
       "title": "ログイン",
       "submit": "ログイン",
-      "failed": "認証に失敗しました"
+      "failed": "メールアドレスまたはパスワードが正しくありません"
     }
   },
   "models": {
@@ -182,17 +186,44 @@ export function AuthForm() {
     }
   },
   "validation": {
-    "invalidEmail": "有効なメールアドレスを入力してください",
-    "lengthRange": "{min, number}〜{max, number}文字で入力してください"
+    "required": "入力してください",
+    "invalidEmail": "有効なメールアドレスを入力してください"
   }
 }
 ```
 
-初期構成では認証エラーを共通の日本語メッセージで表示する。
+ログインの失敗は、メールアドレスの有無とパスワードの誤りを区別しない1つの文言で表示する。初期構成では、通信エラーなども同じ文言にまとめる。
 細分化する場合はBetter Authのエラーコードを翻訳キーへ対応させ、返された英語メッセージをそのまま画面へ出さない。
 
-ログアウトは`authClient.signOut()`の成功後に`router.replace("/sign-in")`・`router.refresh()`を呼ぶ。
-失敗時は画面へエラーを表示し、ログアウトできたことにしない。
+## ログアウト
+
+`authClient.signOut()`の後に`router.replace("/sign-in")`・`router.refresh()`を呼ぶ。初期構成では、失敗時の表示や処理中の状態は設けない。
+ホームだけで使う場合は`src/app/_components/sign-out-button.tsx`に置き、`requireSession()`で保護したページへ配置する。文言は`pages.home.signOut`に定義する。
+
+```tsx
+"use client";
+import { Button } from "@mantine/core";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { authClient } from "@/auth/client";
+
+export function SignOutButton() {
+  const translate = useTranslations();
+  const router = useRouter();
+
+  async function signOut() {
+    await authClient.signOut();
+    router.replace("/sign-in");
+    router.refresh();
+  }
+
+  return (
+    <Button variant="default" onClick={signOut}>
+      {translate("pages.home.signOut")}
+    </Button>
+  );
+}
+```
 
 ## 参考
 
