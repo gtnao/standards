@@ -118,7 +118,7 @@ export async function publishPostAction(
 ): Promise<ServerActionResult<void>> {
   const session = await getSession();
   const translate = await getTranslations();
-  if (!session) {
+  if (session == null) {
     return {
       success: false,
       error: { message: translate("pages.posts.authenticationRequired") },

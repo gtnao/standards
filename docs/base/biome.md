@@ -18,7 +18,10 @@ Gitを使い、生成物などの除外は`.gitignore`に集約する。
   },
   "linter": {
     "rules": {
-      "preset": "recommended"
+      "preset": "recommended",
+      "style": {
+        "useBlockStatements": "error"
+      }
     }
   }
 }
@@ -44,6 +47,7 @@ pnpm add -D -E @biomejs/biome@2.5.13
 | `vcs.useIgnoreFile` | `.gitignore`の除外を反映し、生成物などの除外設定を二重管理しない |
 | `formatter.indentStyle` | スペースを採用する。既定の幅と合わせて2文字になる。ここは好みの選択 |
 | `linter.rules.preset` | 推奨ルールを使う方針を明示する。既定値と同じ |
+| `style.useBlockStatements` | if・else・ループの本体を`{}`で囲む[コーディング方針](coding-guidelines.md#条件分岐)を検査する。推奨ルールには含まれない |
 
 `rules.recommended: true`は非推奨になっているため、後継の`preset: "recommended"`を使う。
 
@@ -79,7 +83,7 @@ pnpm add -D -E @biomejs/biome@2.5.13
 | `assist.actions.source.organizeImports` | import整理は既定で有効。採用方針として明示してもよい |
 | `files.includes` | まず全体を対象とし、生成物などの除外は`.gitignore`に集約する |
 | 引用符・セミコロン・行幅など | まずBiomeの既定値を採用する |
-| 個別ルール・`all`・nursery | 推奨ルールで始め、必要性を確認してから追加する |
+| その他の個別ルール・`all`・nursery | 推奨ルールで始め、コーディング方針として合意したものだけを追加する |
 
 ## 参考
 

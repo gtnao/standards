@@ -53,7 +53,7 @@ export async function publishPost({ input }: Args) {
       where: { id: input.id },
       select: { authorId: true, published: true },
     });
-    if (!post || post.authorId !== input.authorId || post.published) {
+    if (post == null || post.authorId !== input.authorId || post.published) {
       return false;
     }
 

@@ -155,7 +155,9 @@ const [search, setSearch] = useQueryStates(searchParsers, {
 ```ts
 function submitSearch(q: string) {
   const parsed = searchParsers.q.parse(q);
-  if (parsed === null) return;
+  if (parsed == null) {
+    return;
+  }
   void setSearch({ q: parsed, page: 1 });
 }
 
@@ -203,9 +205,13 @@ export function SearchInput({ value, label, submitLabel, maxLength, onSearch }: 
       maxLength={maxLength}
       onChange={event => setDraft(event.currentTarget.value)}
       onKeyDown={event => {
-        if (event.key !== "Enter") return;
+        if (event.key !== "Enter") {
+          return;
+        }
         event.preventDefault();
-        if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return;
+        if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) {
+          return;
+        }
         onSearch(event.currentTarget.value);
       }}
     />

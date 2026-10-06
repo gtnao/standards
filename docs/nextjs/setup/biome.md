@@ -21,7 +21,10 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "preset": "recommended"
+      "preset": "recommended",
+      "style": {
+        "useBlockStatements": "error"
+      }
     },
     "domains": {
       "next": "recommended",
@@ -48,6 +51,7 @@
 | `$schema` | 採用するBiome本体のバージョンに合わせる |
 | `linter.rules.recommended` | 非推奨の`recommended: true`を、後継の`preset: "recommended"`に置き換える |
 | `files.includes` | 削除し、生成物の除外を`.gitignore`に集約する |
+| `style.useBlockStatements` | 追加する。[Baseと同じく](../../base/biome.md#設定の意味と採用理由)、`{}`を省略したif文などをエラーにする |
 
 生成される`.gitignore`には`node_modules/`・`.next/`・`build/`などの除外がある。
 `dist/`など別の出力先を追加したら、そちらに追記する。

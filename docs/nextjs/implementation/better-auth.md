@@ -110,7 +110,7 @@ export function AuthForm() {
           form.clearErrors("root");
           try {
             const result = await authClient.signIn.email(values);
-            if (result.error) {
+            if (result.error != null) {
               form.setError("root", { message: translate("pages.signIn.failed") });
               return;
             }

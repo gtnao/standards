@@ -55,7 +55,7 @@ adapterで生成するクライアント：
 ```ts
 const client = new SQSClient({
   region: config.region,
-  ...(config.endpoint
+  ...(config.endpoint != null
     ? {
         endpoint: config.endpoint,
         credentials: { accessKeyId: "local", secretAccessKey: "local" },

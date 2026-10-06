@@ -133,7 +133,9 @@ const committed = await prisma.$transaction(async (tx) => {
       AND attempt_token = ${attemptToken}::uuid
       AND lease_until > clock_timestamp()
   `;
-  if (owned.length === 0) return false;
+  if (owned.length === 0) {
+    return false;
+  }
 
   await applyResult(tx, result);
   await tx.documentExtractionJob.update({

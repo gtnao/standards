@@ -51,7 +51,7 @@ AWS_PROFILE: z.string().trim().transform((value) => value || undefined).optional
 ```ts
 const llm = createBedrockLlm({
   region: env.BEDROCK_REGION,
-  ...(env.AWS_PROFILE ? { profile: env.AWS_PROFILE } : {}),
+  ...(env.AWS_PROFILE != null ? { profile: env.AWS_PROFILE } : {}),
 });
 ```
 
@@ -64,7 +64,7 @@ import { fromNodeProviderChain } from "@aws-sdk/credential-providers";
 const provider = createAmazonBedrock({
   region: config.region,
   credentialProvider: fromNodeProviderChain(
-    config.profile ? { profile: config.profile } : {},
+    config.profile != null ? { profile: config.profile } : {},
   ),
 });
 ```
@@ -172,7 +172,9 @@ adapterでSDKのメッセージへ変換する。
 
 ```ts
 const toModelMessage = ({ cacheAfter, ...message }: LlmMessage): ModelMessage => {
-  if (!cacheAfter) return message;
+  if (cacheAfter == null) {
+    return message;
+  }
 
   return {
     ...message,

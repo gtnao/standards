@@ -94,7 +94,9 @@ export const adminOptions = {
   plugins: [admin({ ac, roles })],
   hooks: {
     before: createAuthMiddleware(async (ctx) => {
-      if (ctx.path !== "/admin/create-user") return;
+      if (ctx.path !== "/admin/create-user") {
+        return;
+      }
       if (!passwordSchema.safeParse(ctx.body?.password).success) {
         throw new APIError("BAD_REQUEST", {
           message: "Invalid password",
@@ -152,7 +154,9 @@ export async function getSession() {
 
 export async function requireSession() {
   const session = await getSession();
-  if (!session) redirect("/sign-in");
+  if (session == null) {
+    redirect("/sign-in");
+  }
   return session;
 }
 
