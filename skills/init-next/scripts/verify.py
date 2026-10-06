@@ -83,6 +83,11 @@ def main():
                 health = run("postgres-health", ["docker", "inspect", "--format", "{{.State.Health.Status}}", existing]).strip()
                 if health != "healthy":
                     raise RuntimeError(f"Existing PostgreSQL is {health}; left unchanged")
+            # Read-only statement: an existing development database keeps its data and migrations.
+            address = run("postgres-port", ["docker", "compose", "port", "postgres", "5432"]).strip()
+            statement = output / "prisma-connect.sql"
+            statement.write_text("SELECT 1;\n")
+            run("prisma-connect", [args.pnpm, "exec", "prisma", "db", "execute", "--file", str(statement)], extra_env={"DATABASE_URL": f"postgresql://app:local-password@{address}/app"})
             run("docker-build", ["docker", "build", "-t", image, "."], timeout=1200)
             run("docker-start", ["docker", "run", "-d", "--init", "--name", container, "-p", "127.0.0.1::3000", image])
             binding = json.loads(run("docker-port", ["docker", "inspect", "--format", '{{json (index .NetworkSettings.Ports "3000/tcp")}}', container]))
@@ -246,7 +251,7 @@ def check_git(target, env):
         return subprocess.run(["git", *args], cwd=target, env=env, capture_output=True, text=True)
     if git("rev-parse", "--show-toplevel").stdout.strip() != str(target):
         raise RuntimeError("Initialize Git in the target; do not use a parent repository")
-    for path, ignored in ((".env", True), (".env.example", False), ("messages/ja.d.json.ts", True)):
+    for path, ignored in ((".env", True), (".env.example", False), ("messages/ja.d.json.ts", True), ("src/prisma/generated/client.ts", True)):
         result = git("check-ignore", "--no-index", path)
         if result.returncode not in {0, 1} or (result.returncode == 0) != ignored:
             raise RuntimeError(f"Unexpected Git ignore policy: {path}")

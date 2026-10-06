@@ -6,6 +6,9 @@
 !tsconfig.json
 !next.config.ts
 !postcss.config.mjs
+!prisma.config.ts
+!prisma/
+!prisma/**
 !messages/
 !messages/**
 !src/
@@ -14,5 +17,6 @@
 !public/**
 
 messages/*.d.json.ts
+src/prisma/generated/
 **/.env
 **/.env.*

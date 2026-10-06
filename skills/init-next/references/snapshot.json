@@ -14,9 +14,12 @@
       "@hookform/resolvers": "5.9.1",
       "@mantine/core": "9.6.3",
       "@mantine/hooks": "9.6.3",
+      "@prisma/adapter-pg": "7.9.1",
+      "@prisma/client": "7.9.1",
       "@tabler/icons-react": "3.48.0",
       "next": "16.3.6",
       "next-intl": "4.14.7",
+      "pg": "8.23.0",
       "react": "19.3.0",
       "react-dom": "19.3.0",
       "react-hook-form": "7.89.0",
@@ -24,6 +27,7 @@
     },
     "devDependencies": {
       "@biomejs/biome": "2.5.14",
+      "@next/env": "16.3.6",
       "@types/node": "24.19.0",
       "@types/react": "19.3.0",
       "@types/react-dom": "19.3.0",
@@ -31,6 +35,7 @@
       "postcss": "8.5.28",
       "postcss-preset-mantine": "1.18.0",
       "postcss-simple-vars": "7.0.1",
+      "prisma": "7.9.1",
       "typescript": "7.0.2",
       "vitest": "5.0.2"
     }
@@ -46,6 +51,9 @@
       "production build",
       "development HTTP and assets",
       "PostgreSQL health",
+      "Prisma Client generation with an empty schema (host and image)",
+      "Prisma CLI connection to Compose PostgreSQL",
+      "Prisma Client query from a temporary Route Handler in development (manual)",
       "Docker build, HTTP, non-root, graceful stop"
     ]
   }

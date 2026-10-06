@@ -51,7 +51,7 @@ def main():
             destination = target / source.relative_to(template)
             destination.parent.mkdir(parents=True, exist_ok=True)
             destination.write_text(source.read_text().replace("__PROJECT_NAME__", name))
-        (target / ".env").write_text("")
+        shutil.copyfile(target / ".env.example", target / ".env")
     if not args.files_only:
         if not (target / ".git").exists():
             subprocess.run(["git", "init", "-b", "main"], cwd=target, env=env, check=True)

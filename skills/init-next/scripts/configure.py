@@ -10,11 +10,12 @@ from pathlib import Path
 RUNTIME = {
     "next", "react", "react-dom", "@mantine/core", "@mantine/hooks",
     "@tabler/icons-react", "next-intl", "react-hook-form", "@hookform/resolvers", "zod",
+    "@prisma/client", "@prisma/adapter-pg", "pg",
 }
 DEVELOPMENT = {
     "typescript", "@types/node", "@types/react", "@types/react-dom",
     "@biomejs/biome", "babel-plugin-react-compiler", "postcss",
-    "postcss-preset-mantine", "postcss-simple-vars", "vitest",
+    "postcss-preset-mantine", "postcss-simple-vars", "vitest", "prisma", "@next/env",
 }
 GENERATED = {
     "README.md", "tsconfig.json", "biome.json", "next.config.ts",
@@ -51,6 +52,8 @@ def main():
             assert re.fullmatch(r"\d+\.\d+\.\d+", versions[name]), f"Invalid version: {name}"
         assert versions["dependencies"]["react"] == versions["dependencies"]["react-dom"], "Match React versions."
         assert versions["dependencies"]["@mantine/core"] == versions["dependencies"]["@mantine/hooks"], "Match Mantine versions."
+        assert versions["devDependencies"]["prisma"] == versions["dependencies"]["@prisma/client"] == versions["dependencies"]["@prisma/adapter-pg"], "Match Prisma versions."
+        assert versions["devDependencies"]["@next/env"] == versions["dependencies"]["next"], "Match @next/env to Next.js."
         for name, prefix in (("nodeImage", "node:"), ("postgresImage", "postgres:")):
             assert versions[name].startswith(prefix) and re.fullmatch(r"[\w./:-]+@sha256:[a-f0-9]{64}", versions[name]), f"Pin image tag and digest: {name}"
         assert versions["nodeImage"].startswith(f'node:{versions["node"]}-'), "Match Docker and package.json Node versions."
@@ -75,11 +78,15 @@ def main():
         "private": True, "type": "module", "packageManager": f'pnpm@{versions["pnpm"]}',
         "devEngines": {"runtime": {"name": "node", "version": f'^{versions["node"]}', "onFail": "download"}},
         "scripts": {
-            "dev": "next dev", "build": "next build", "start": "next start",
-            "typecheck": "next typegen && tsc --noEmit",
+            "dev": "pnpm run db:generate && next dev",
+            "build": "pnpm run db:generate && next build", "start": "next start",
+            "typecheck": "pnpm run db:generate && next typegen && tsc --noEmit",
             "lint": "biome check --error-on-warnings .",
             "lint:fix": "biome check --write --error-on-warnings .",
             "test": "vitest run", "test:watch": "vitest",
+            "db:generate": "prisma generate",
+            "db:migrate": "prisma migrate dev --create-only",
+            "db:deploy": "prisma migrate deploy",
         },
         "dependencies": versions["dependencies"], "devDependencies": versions["devDependencies"],
     })
@@ -105,8 +112,8 @@ packages:
     if "@AGENTS.md" not in claude:
         files["CLAUDE.md"] = claude.rstrip() + "\n\n@AGENTS.md\n" if claude else "@AGENTS.md\n"
     ignore = (target / ".gitignore").read_text() if (target / ".gitignore").exists() else ""
-    files[".gitignore"] = ignore.rstrip() + "\n\n.env\n.env.*\n!.env.example\n/messages/*.d.json.ts\n.vitest/\n"
-    files[".env"] = ""
+    files[".gitignore"] = ignore.rstrip() + "\n\n.env\n.env.*\n!.env.example\n/messages/*.d.json.ts\n.vitest/\n/src/prisma/generated/\n"
+    files[".env"] = files[".env.example"]
     for rel, contents in files.items():
         path = target / rel
         path.parent.mkdir(parents=True, exist_ok=True)

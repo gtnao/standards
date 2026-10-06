@@ -144,6 +144,7 @@ Next.jsが生成するコードの出力先やsource mapは、Next.js側の設�
 tsconfigにも`noEmit`はあるが、スクリプトでは型チェック専用であることを明示する。
 
 `next build`でも型チェックするが、ビルドせず検査できる独立したコマンドは残す。
+[Prisma Clientの生成](prisma.md#生成とマイグレーション)は、`dev`・`typecheck`・`build`の先頭へ加える。
 `typescript.ignoreBuildErrors`でビルド時の検査を無効化しない。
 
 ## TypeScriptと型パッケージの版

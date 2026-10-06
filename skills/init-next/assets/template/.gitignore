@@ -8,3 +8,4 @@ next-env.d.ts
 !.env.example
 /messages/*.d.json.ts
 .vitest/
+/src/prisma/generated/

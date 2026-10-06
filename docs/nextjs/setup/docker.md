@@ -63,6 +63,9 @@ Nodeの版・digestは検証時の例。導入時はlockfileで確定したNode�
 !tsconfig.json
 !next.config.ts
 !postcss.config.mjs
+!prisma.config.ts
+!prisma/
+!prisma/**
 !messages/
 !messages/**
 !src/
@@ -71,6 +74,7 @@ Nodeの版・digestは検証時の例。導入時はlockfileで確定したNode�
 !public/**
 
 messages/*.d.json.ts
+src/prisma/generated/
 **/.env
 **/.env.*
 ```
@@ -79,7 +83,7 @@ messages/*.d.json.ts
 ローカルの`node_modules`・`.next`は持ち込まない。末尾の指定で、src・public内も含めて`.env`類を除外する。
 [MantineのPostCSS設定](mantine.md#スタイルとpostcss)と[next-intlのメッセージ](i18n.md)も許可する。翻訳の型宣言はビルドで生成するため、ローカルの生成物は除外する。
 ビルドに必要な設定やファイルが増えたら、許可対象に追加する。
-Prismaを導入した場合は、[schema・CLI設定の追加とイメージ内での生成](prisma.md#ciとdocker)も反映する。
+[Prismaのschema・migrations・CLI設定](prisma.md#ciとdocker)も許可する。Prisma Clientもビルドで生成するため、ローカルの生成コードは除外する。
 
 ## 採用理由とCLI構成との差分
 

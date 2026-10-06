@@ -10,6 +10,14 @@ pnpm dev
 ```
 
 Add local environment values to `.env` and document their names in `.env.example`.
+`DATABASE_URL` points at the Compose PostgreSQL; update it together with `POSTGRES_PORT`.
+
+After changing `prisma/schema.prisma`, create the migration SQL, review it, then apply it.
+
+```sh
+pnpm run db:migrate --name <name>
+pnpm run db:deploy
+```
 
 ```sh
 pnpm run lint

@@ -1,6 +1,6 @@
 ---
 name: init-next
-description: Generate a Next.js App Router project from a reviewed, locked template with pnpm, Mantine, next-intl, React Hook Form, Zod, PostgreSQL Compose, Docker, CI and implementation standards.
+description: Generate a Next.js App Router project from a reviewed, locked template with pnpm, Mantine, next-intl, React Hook Form, Zod, PostgreSQL Compose, Prisma, Docker, CI and implementation standards.
 ---
 
 # Next.js scaffold
@@ -15,7 +15,7 @@ Use the user's target directory, empty except for an optional `.git`. Resolve th
 python3 /path/to/init-next/scripts/generate.py /absolute/project/path
 ```
 
-By default, copy the reviewed files, replace the project name, create empty `.env` and `.env.example`, initialize Git if needed, run `pnpm install --frozen-lockfile`, run `aqua install`, and register hooks with `aqua exec -- lefthook install`. Complete these steps as part of the skill; do not hand them back to the user as follow-up work. Use `--name lowercase-name` if needed.
+By default, copy the reviewed files, replace the project name, create `.env` from `.env.example` (the local Compose database URL), initialize Git if needed, run `pnpm install --frozen-lockfile`, run `aqua install`, and register hooks with `aqua exec -- lefthook install`. Complete these steps as part of the skill; do not hand them back to the user as follow-up work. Use `--name lowercase-name` if needed.
 
 pnpm, aqua and Git must already be available; executable paths can be supplied with `--pnpm` and `--aqua`. Use the tools’ existing configuration and standard storage locations. Preserve age/trust/build restrictions; report a blocked installation rather than weakening them or silently changing versions. Do not claim preparation is complete when a prerequisite or command failed.
 
@@ -45,7 +45,7 @@ Read the per-run summary and failure logs. `--only checks build dev docker` sele
 
 ## Implementing features
 
-Generated AGENTS.md links to the bundled implementation rules, and CLAUDE.md references AGENTS.md. Read only the rules relevant to requested implementation work. Merely generating the scaffold does not require reading all standards or adding Prisma, authentication, tables, demo forms or empty architectural layers.
+Generated AGENTS.md links to the bundled implementation rules, and CLAUDE.md references AGENTS.md. Read only the rules relevant to requested implementation work. Merely generating the scaffold does not require reading all standards or adding models, migrations, authentication, tables, demo forms or empty architectural layers.
 
 ## Maintaining the snapshot
 

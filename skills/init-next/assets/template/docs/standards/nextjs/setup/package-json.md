@@ -16,14 +16,17 @@
     }
   },
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "pnpm run db:generate && next dev",
+    "build": "pnpm run db:generate && next build",
     "start": "next start",
-    "typecheck": "next typegen && tsc --noEmit",
+    "typecheck": "pnpm run db:generate && next typegen && tsc --noEmit",
     "lint": "biome check --error-on-warnings .",
     "lint:fix": "biome check --write --error-on-warnings .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev --create-only",
+    "db:deploy": "prisma migrate deploy"
   }
 }
 ```
@@ -53,15 +56,17 @@ Next.jsもESMの`next.config.ts`に対応している。CommonJSが必要な設�
 
 | 項目 | 生成時からの変更・理由 |
 | --- | --- |
-| `dev` | `next dev`を維持する。変更を反映する開発サーバーを起動する |
-| `build` | `next build`を維持する。本番向けにビルドする |
+| `dev` | 生成時の`next dev`の前にPrisma Clientを生成する。変更を反映する開発サーバーを起動する |
+| `build` | 生成時の`next build`の前にPrisma Clientを生成する。本番向けにビルドする |
 | `start` | 通常のビルドでは`next start`で本番モードを起動する。[Dockerのstandalone構成](docker.md)では、DockerfileのCMDで`node server.js`を直接実行する |
-| `typecheck` | 追加する。Next.jsの型を生成してから、ビルドせず型チェックする |
+| `typecheck` | 追加する。Prisma ClientとNext.jsの型を生成してから、ビルドせず型チェックする |
 | `lint` | 生成時の`biome check`に`--error-on-warnings .`を加え、警告も失敗扱いにする |
 | `lint:fix` | 生成時の`format: "biome format --write"`を置き換える。整形・import整理・安全なLint修正をまとめて適用する |
+| `db:*` | 追加する。Prisma Clientの生成、マイグレーションSQLの作成、作成済みSQLの適用を分ける |
 
 型生成と型チェックの詳細は[Next.jsのTypeScript設定](typescript.md#実行コマンド)、Biomeの設定とコマンドは[Next.jsのBiome設定](biome.md)を参照。
 `test`・`test:watch`は[Next.jsのVitest設定](vitest.md)と併せて追加する。Next.jsでもNode.js上のユニットテストには共通設定を使う。
+`db:*`の使い分けと、起動・型チェック・ビルドの前に生成する理由は[Prismaの生成とマイグレーション](prisma.md#生成とマイグレーション)を参照。
 
 ## 依存バージョンの調整
 
@@ -71,7 +76,7 @@ Next.js・React・React DOMの対応を確認し、ReactとReact DOMは同じ版
 
 TypeScriptは[Next.js側の対応](typescript.md#typescriptと型パッケージの版)も確認する。
 Biomeを更新したら`biome.json`の`$schema`も揃える。
-[Mantine・Tabler IconsとPostCSS](mantine.md)、[next-intl](i18n.md)、[環境変数検証のZod](env.md)も各文書に従って追加する。
+[Mantine・Tabler IconsとPostCSS](mantine.md)、[next-intl](i18n.md)、[環境変数検証のZod](env.md)、[Prisma](prisma.md)も各文書に従って追加する。
 依存の解決結果は`pnpm-lock.yaml`で共有する。
 
 ## 参考

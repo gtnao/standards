@@ -14,3 +14,5 @@ allowBuilds:
   esbuild@0.28.2: true
   "@parcel/watcher@2.6.0": false
   "@swc/core@1.16.2": false
+  prisma@7.9.1: true
+  "@prisma/engines@7.9.1": true

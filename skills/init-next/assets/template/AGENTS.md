@@ -22,4 +22,6 @@ Place Node.js unit tests beside code as `*.test.ts`, with test helpers in `__tes
 
 After relevant code/configuration changes, run `pnpm run lint`, `pnpm run typecheck`, `pnpm run test` and `pnpm run build`. When Docker or dependencies change, also verify the built container. Keep the lockfile and validate frozen installation. Lefthook checks lint/typecheck; CI additionally checks tests/build.
 
+Prisma is part of the initial setup with an empty schema. Add models to `prisma/schema.prisma` when a feature needs them, create the migration SQL with `pnpm run db:migrate --name <name>`, review it, then apply it with `pnpm run db:deploy`. Do not edit generated code under `src/prisma/generated` or migrations that were already applied.
+
 Docker Compose provides local PostgreSQL and Next.js runs locally during development. Keep Dockerfile and .dockerignore for standalone production builds. Include new required build inputs in the Docker allowlist and keep all .env files excluded.

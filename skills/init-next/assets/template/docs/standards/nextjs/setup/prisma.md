@@ -2,6 +2,7 @@
 
 PostgreSQLへのアクセスと型生成にPrismaを使い、スキーマ変更はPrisma Migrateで管理する。
 Prismaは`adapters`配置の例外とし、`src/prisma/`にまとめる。
+初期構成に含め、DBを使う機能をすぐ実装できる状態にする。
 
 [利用時の方針](../implementation/prisma.md)も参照する。
 
@@ -43,7 +44,9 @@ datasource db {
 }
 ```
 
-実際に扱うモデルをこのschemaへ追加する。旧`prisma-client-js`ではなく、出力先を明示する`prisma-client`を使う。
+初期構成ではモデルを置かず、`prisma/migrations/`も作らない。実際に扱うモデルを追加するときに、最初のマイグレーションを作成する。
+モデルがなくても`prisma generate`は成功するため、空のschemaのまま型チェック・ビルドできる。
+旧`prisma-client-js`ではなく、出力先を明示する`prisma-client`を使う。
 生成コードは手編集せず、`.gitignore`に`/src/prisma/generated/`を追加する。schemaとmigrationsはGit管理する。
 
 ## CLIの設定と環境変数
@@ -56,11 +59,17 @@ import { defineConfig } from "prisma/config";
 import { z } from "zod";
 
 nextEnv.loadEnvConfig(process.cwd(), process.env.NODE_ENV !== "production");
-const databaseUrl = z.string().min(1).optional().parse(process.env.DATABASE_URL);
+
+const databaseUrl = z
+  .string()
+  .min(1)
+  .optional()
+  .parse(process.env.DATABASE_URL);
+
 export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: { path: "prisma/migrations" },
-  ...(databaseUrl ? { datasource: { url: databaseUrl } } : {}),
+  ...(databaseUrl != null ? { datasource: { url: databaseUrl } } : {}),
 });
 ```
 
@@ -78,7 +87,7 @@ Next.js外で動くCLIでも[同じ環境変数の読み込み規則](env.md)を
 DATABASE_URL=postgresql://app:local-password@127.0.0.1:5432/app
 ```
 
-ポートを変更したらURLも合わせる。実際の接続先は`.env.example`にも説明し、本番の認証情報は実行環境から渡す。
+ポートを変更したらURLも合わせる。`.env.example`にも同じローカル用の接続先を載せ、本番の認証情報は実行環境から渡す。
 アプリの`src/env/server.ts`では、`DATABASE_URL: z.string().min(1)`として必須検証し、`process.env.DATABASE_URL`を明示的に読み取る。
 
 ## クライアントの生成と再利用
@@ -97,8 +106,10 @@ const globalForPrisma = globalThis as typeof globalThis & {
 let client: PrismaClient | undefined;
 
 export function getPrisma() {
-  if (client) return client;
-  if (globalForPrisma.prisma) {
+  if (client != null) {
+    return client;
+  }
+  if (globalForPrisma.prisma != null) {
     client = globalForPrisma.prisma;
     return client;
   }
@@ -110,7 +121,9 @@ export function getPrisma() {
       connectionTimeoutMillis: 5_000,
     }),
   });
-  if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = client;
+  if (process.env.NODE_ENV !== "production") {
+    globalForPrisma.prisma = client;
+  }
   return client;
 }
 ```
@@ -183,7 +196,7 @@ pnpm run db:deploy
 
 既存CIの`typecheck`・`build`から生成が実行される。schemaからの型生成だけなら、DBや接続情報をCIに追加する必要はない。
 
-[Dockerの許可リスト](docker.md#dockerignore)へ、他の許可項目と合わせて次を追加する。
+[Dockerの許可リスト](docker.md#dockerignore)には、schema・migrations・CLI設定を含める。
 
 ```dockerignore
 !prisma/
@@ -191,7 +204,7 @@ pnpm run db:deploy
 !prisma.config.ts
 ```
 
-末尾の除外項目には`src/prisma/generated/`を追加し、`.env`類の除外も維持する。
+末尾の除外項目には`src/prisma/generated/`を含め、`.env`類の除外も維持する。
 ローカルの生成物をコピーせず、イメージ内の`pnpm run build`で生成する。生成はソース・schema・CLI設定をコピーした後に行う。
 
 アプリのstandaloneイメージとマイグレーションの実行環境は役割が異なる。

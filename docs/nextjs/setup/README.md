@@ -21,16 +21,16 @@
 | 11 | [React Hook Form](react-hook-form.md) | RHF・resolver・Zodを用意し、フォーム実装時に利用方針へ従う |
 | 12 | [環境変数](env.md) | Zodによる検証の配置と、サーバー用・公開用の境界を用意する |
 | 13 | [Docker Compose](../../base/docker-compose.md) | ローカルPostgreSQLを用意する。Next.jsはローカルで実行する |
-| 14 | [Dockerfile](docker.md) | 本番用standaloneイメージをビルドできる状態にする |
+| 14 | [Prisma](prisma.md) | PostgreSQLへ接続するクライアント、型生成・マイグレーションのコマンドを用意する。モデルは実装時に追加する |
+| 15 | [Dockerfile](docker.md) | 本番用standaloneイメージをビルドできる状態にする |
 
 [コーディング方針](../../base/coding-guidelines.md)と[実装方針](../implementation/README.md)を、生成されたAGENTS.mdの管理ブロック外から参照する。
-手動導入・テンプレート更新時は、依存のインストール後にlint・型チェック・テスト・ビルド、PostgreSQLと本番イメージの起動を確認する。
+手動導入・テンプレート更新時は、依存のインストール後にlint・型チェック・テスト・ビルド、PostgreSQLの起動とPrismaからの接続、本番イメージの起動を確認する。
 
 ## 機能を追加するときの導入
 
 | 項目 | 設定するもの |
 | --- | --- |
-| [Prisma](prisma.md) | PostgreSQLへのアクセス、型生成、マイグレーション |
 | [Better Auth](better-auth.md) | メール・パスワード認証、Admin、DBセッション |
 | [Worker](worker.md) | 非同期ジョブのローカル起動、Webと共有するコードの境界 |
 | [TanStack Table・nuqs](table.md) | テーブル操作とURL同期に必要な依存・Provider |
