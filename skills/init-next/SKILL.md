@@ -34,28 +34,32 @@ Only write inside the authorized project/workspace. Package managers, create-nex
 
 ## Verify the combined result
 
-Run from the generated project:
+Run `pnpm run lint:fix` once after configuration, then use the verifier instead of issuing each check separately:
 
 ```sh
-pnpm run lint:fix
-pnpm run lint
-pnpm run typecheck
-pnpm run test
-pnpm run build
-pnpm install --frozen-lockfile
-aqua exec -- lefthook run pre-commit
-docker compose config --quiet
-docker compose up -d --wait
-docker build -t project-name .
+python3 /path/to/init-next/scripts/verify.py /absolute/project/path \
+  --output /absolute/workspace/verification-results
 ```
 
-Use the selected project's image name. Check the PostgreSQL health status and run the production image with an available loopback port and `--init`. Verify the Japanese page, Mantine output and JS/CSS HTTP responses, non-root runtime and graceful stop. Check development startup too. No external credentials should be required for this baseline.
+Keep the output outside the generated project, inside the authorized workspace. Use `--pnpm /absolute/path/to/pnpm` if needed. The script respects supplied cache environment variables; otherwise it places package-manager caches under the output directory. Reuse the same output directory and cache environment from installation to avoid downloading the toolchain twice.
 
-Confirm that typecheck generates next-intl declarations on a clean tree and that invalid translation keys/arguments are rejected; use a temporary type probe if needed, then remove it. Ensure `.env` is ignored, `.env.example` is trackable, generated message declarations are ignored and excluded from the Docker context. Inspect the production image for accidental secrets. Do not add trivial tests merely to avoid an empty suite; `passWithNoTests` supports the initial scaffold. Browser/UI test infrastructure is outside this baseline.
+The verifier runs frozen install, lint/typecheck/tests, build, development HTTP checks, Compose health checks and a production Docker smoke test. It checks Japanese HTML, Mantine markup, JS/CSS responses, non-root runtime, writable cache, absence of root .env files and graceful container shutdown. Lint/typecheck/tests run in parallel; type generation, build and server startup do not overlap. It checks Git exclusions and the executable Lefthook hook without repeating lint/typecheck through the hook. Each invocation keeps logs and a `summary.json` with per-check durations in a separate run directory; partial reruns do not overwrite earlier evidence. It stops only processes/containers it started, removes its uniquely named test image/container and preserves Compose volumes.
 
-Stop only the processes/containers started for verification. Do not delete user data volumes or prune unrelated Docker resources. Remove temporary version metadata and test probes once they are reflected in project files.
+Read the summary; open individual logs only on failure. Do not repeat successful commands manually. After a repair, use `--only` with the affected stages:
 
-If required tools, network access or permissions are unavailable, complete independent file work and report the specific unverified steps. Do not label configuration as tested based solely on reading the template. Report the location, current versions selected, completed checks and remaining limitations.
+| Change | Stages to rerun |
+| --- | --- |
+| Source, TypeScript, messages or framework settings | `checks build dev docker` |
+| Dockerfile or .dockerignore only | `docker` |
+| Compose only | `docker` |
+| Dependencies, lockfile or package-manager settings | Full verification |
+| Documentation only | Link checks; no application rebuild |
+
+Partial runs verify only the selected stages; retain evidence from the preceding full run and report any unverified stages. No automatic reuse of old pass results is inferred from timestamps.
+
+The checks stage temporarily adds a translation type probe to the existing typecheck: invalid keys and missing interpolation arguments must be rejected. It restores the original messages and regenerates their declarations afterward, including on failure. The script does not inspect publishers/build scripts or scan arbitrary application secrets; retain the earlier dependency review and review the Docker allowlist for secret exposure. Browser/UI test infrastructure is outside this baseline. No external credentials should be required for the empty scaffold.
+
+If required tools, network access or permissions are unavailable, finish independent work and report the failed or unverified stages. Do not call the full setup verified merely because a partial run passed. Report the location, selected versions and summary of checks.
 
 ## Maintaining this skill
 
