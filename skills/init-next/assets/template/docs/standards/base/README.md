@@ -14,6 +14,7 @@ CLI・Next.jsで共有する設定と実装方針。実行環境ごとの完成�
 | [環境変数](env.md) | 秘密情報の扱い、Zodによる検証・変換 |
 | [AI SDK・Bedrock](ai-sdk.md) | LLMのports/adapters、認証、構造化出力・Tool・キャッシュ |
 | [非同期ジョブ](async-jobs.md) | 共通SQSキュー・Worker、DBリース、結果確定 |
+| [秘匿情報の保存](secret-storage.md) | 暗号化のport、`_enc`のJSONカラム、KMSとローカル実装 |
 | [.gitignore](gitignore.md) | 生成物とローカル設定の除外、雛形の共有 |
 | [aqua](aqua.md) | 開発ツールの版管理、pinact、Lefthook |
 | [GitHub Actions](github-actions.md) | CIの実行、権限・SHA固定・必須チェック |

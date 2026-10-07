@@ -20,6 +20,57 @@ model UserProfile {
 リレーションフィールド自体はカラムではないため、`@map`は付けない。外部キーのスカラーフィールドは同じ命名方針に従う。
 外部ライブラリのCLIが生成したモデルも、マイグレーションSQLを作る前にこの規則へ揃える。
 
+### 種別と種別ごとのテーブル
+
+種別を表すフィールドは`kind`と命名し、`type`は使わない。`type`はTypeScriptやライブラリの名前と重なりやすく、検索や補完で紛れる。
+
+種別はDBのenumにせず、`String`で保存する。許可する値はdomainで定義し、入力の検証とTypeScriptの型に使う。
+
+```ts
+import { z } from "zod";
+
+export const connectionKindSchema = z.enum(["trocco"]);
+
+export type ConnectionKind = z.output<typeof connectionKindSchema>;
+```
+
+PostgreSQLのenumは値の追加は軽いが、値の削除は型を作り直してテーブル全体を書き換えるマイグレーションになる。Prismaもその形のSQLを生成する。
+大きなテーブルでは長いロックになるため、種別の増減をDBの型変更にしない。DB側で値を制約しない代わりに、書き込みは必ずdomainの定義を通す。
+
+種別によって項目が異なるレコードは、共通項目と`kind`を持つ親テーブルと、種別ごとの子テーブルに分ける。
+子テーブル名は`<親の単数形>_<種別>_<内容>`の複数形にし、接頭辞で親との対応が分かるようにする。
+子テーブルは親の`id`を主キー兼外部キーにし、親の削除で一緒に消す。
+
+外部サービスへの接続情報の例：
+
+```prisma
+model Connection {
+  id        String   @id @default(uuid(7))
+  name      String
+  // Allowed values are defined in the domain, not as a database enum.
+  kind      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  troccoSetting ConnectionTroccoSetting?
+
+  @@map("connections")
+}
+
+model ConnectionTroccoSetting {
+  connectionId String     @id @map("connection_id")
+  connection   Connection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  // Encrypted with SecretCipher; the JSON holds every parameter needed to decrypt.
+  apiKeyEnc    Json       @map("api_key_enc")
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  @@map("connection_trocco_settings")
+}
+```
+
+秘匿情報を含むカラムは、[秘匿情報の保存](../../base/secret-storage.md)に従って暗号化したJSONを置き、`_enc`の接尾辞を付ける。
+
 ## 依存関係の例外
 
 | 利用する側 | 許可するもの |
