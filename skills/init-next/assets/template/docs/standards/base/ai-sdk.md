@@ -6,11 +6,13 @@ usecaseはモデル・プロンプト・出力スキーマ・Toolを指定し、
 
 ## 導入
 
-AI SDK 7系を前提とする。導入する版は[pnpmの待機期間](pnpm-workspace.md)と互換性を確認して選ぶ。
+AI SDK 7系を前提とする。導入する版は[pnpmの待機期間](pnpm-workspace.md)と互換性を確認して選ぶ。Zodは[環境変数の検証](env.md)で導入済みのものを使う。
 
 ```sh
-pnpm add ai @ai-sdk/amazon-bedrock @aws-sdk/credential-providers zod
+pnpm add -E ai@7.0.122 @ai-sdk/amazon-bedrock@5.0.101 @aws-sdk/credential-providers@3.1143.0
 ```
+
+2026年10月7日の確認では、上記が待機期間・信頼性検証を通る最新版。`ai`とBedrock providerは別々に版が進むため、両方が依存する`@ai-sdk/provider`の版が一致することを確認する。
 
 ```text
 src/
@@ -94,12 +96,21 @@ portの`generateObject`という名前は独自の契約であり、SDKの旧`ge
 目的は外部呼び出しをテストで制御できること。会話やToolの型体系を独自に作り直さない。
 Bedrock固有のオプションへの変換はadapterへ閉じ込める。
 
-共通の呼び出し条件は`ports/llm.ts`で定義する。
+`ports/llm.ts`の全体。共通の呼び出し条件と4つのメソッドを定義する。
 
 ```ts
-import type { ModelMessage, ToolSet } from "ai";
+import type {
+  DeepPartial,
+  FinishReason,
+  LanguageModelUsage,
+  ModelMessage,
+  TextStreamPart,
+  ToolSet,
+} from "ai";
+import type { z } from "zod";
 
 export type LlmMessage = ModelMessage & {
+  // Marks the end of the shared prefix that the provider may cache.
   cacheAfter?: { ttl: "5m" | "1h" };
 };
 
@@ -113,6 +124,37 @@ export type LlmRequest = {
     maxSteps: number;
   };
 };
+
+export type LlmObjectRequest<Schema extends z.ZodType> = LlmRequest & {
+  schema: Schema;
+};
+
+export type GenerationResult<Output> = {
+  output: Output;
+  usage: LanguageModelUsage;
+  finishReason: FinishReason;
+};
+
+export type GenerationStream<Chunk, Result> = {
+  stream: AsyncIterable<Chunk>;
+  result: Promise<Result>;
+};
+
+export interface Llm {
+  generateText(request: LlmRequest): Promise<GenerationResult<string>>;
+  generateObject<Schema extends z.ZodType>(
+    request: LlmObjectRequest<Schema>,
+  ): Promise<GenerationResult<z.output<Schema>>>;
+  streamText(
+    request: LlmRequest,
+  ): GenerationStream<TextStreamPart<ToolSet>, GenerationResult<string>>;
+  streamObject<Schema extends z.ZodType>(
+    request: LlmObjectRequest<Schema>,
+  ): GenerationStream<
+    DeepPartial<z.output<Schema>>,
+    GenerationResult<z.output<Schema>>
+  >;
+}
 ```
 
 モデルは呼び出すたびに`modelId`で指定し、adapter内で`provider(modelId)`を作る。
@@ -162,6 +204,7 @@ return {
 ```
 
 `options`はモデル・メッセージ・Tool・中断条件などをSDKの引数に変換したもの。
+スキーマをジェネリクスで受け取るadapterでは、`Output.object<z.output<Schema>>({ schema })`のように出力型を明示する。省略すると`output`が`unknown`になる。
 JSON Schemaに表現できるスキーマを基本とし、Zodの任意の変換処理までモデル側の制約になるとは考えない。
 構造化出力の検証失敗を空オブジェクトや成功値へ変換しない。
 
@@ -249,6 +292,163 @@ adapterでは`generateText`・`streamText`にToolと停止条件を渡してル�
 
 `maxSteps`への到達は業務処理の成功を意味しない。終了理由・完成出力を確認する。
 タイムアウト・中断をTool側の外部呼び出しにも伝播し、副作用を持つToolは再実行時の扱いを決める。
+
+## adapterの全体
+
+`adapters/bedrock-llm.ts`の全体。上記の各節の処理を1つのファイルにまとめる。
+
+```ts
+import { createAmazonBedrock } from "@ai-sdk/amazon-bedrock";
+import { fromNodeProviderChain } from "@aws-sdk/credential-providers";
+import {
+  type CallWarning,
+  type FinishReason,
+  generateText,
+  isStepCount,
+  type LanguageModelUsage,
+  type ModelMessage,
+  Output,
+  streamText,
+} from "ai";
+import type { z } from "zod";
+import type {
+  GenerationResult,
+  Llm,
+  LlmMessage,
+  LlmObjectRequest,
+  LlmRequest,
+} from "@/ports/llm";
+
+type Config = {
+  region: string;
+  profile?: string;
+};
+
+export function createBedrockLlm(config: Config): Llm {
+  // The chain is passed as a provider so that temporary credentials refresh.
+  const provider = createAmazonBedrock({
+    region: config.region,
+    credentialProvider: fromNodeProviderChain(
+      config.profile != null ? { profile: config.profile } : {},
+    ),
+  });
+
+  return {
+    async generateText(request) {
+      const result = await generateText(toOptions(provider, request));
+      reportWarnings(result.warnings);
+      return {
+        output: result.text,
+        usage: result.usage,
+        finishReason: result.finishReason,
+      };
+    },
+
+    async generateObject<Schema extends z.ZodType>(
+      request: LlmObjectRequest<Schema>,
+    ) {
+      const result = await generateText({
+        ...toOptions(provider, request),
+        output: Output.object<z.output<Schema>>({ schema: request.schema }),
+      });
+      reportWarnings(result.warnings);
+      return {
+        output: result.output,
+        usage: result.usage,
+        finishReason: result.finishReason,
+      };
+    },
+
+    streamText(request) {
+      const result = streamText(toOptions(provider, request));
+      return { stream: result.stream, result: finish(result, result.text) };
+    },
+
+    streamObject<Schema extends z.ZodType>(request: LlmObjectRequest<Schema>) {
+      const result = streamText({
+        ...toOptions(provider, request),
+        output: Output.object<z.output<Schema>>({ schema: request.schema }),
+      });
+      return {
+        stream: result.partialOutputStream,
+        result: finish(result, result.output),
+      };
+    },
+  };
+}
+
+type Provider = ReturnType<typeof createAmazonBedrock>;
+
+function toOptions(provider: Provider, request: LlmRequest) {
+  const { execution } = request;
+  if (
+    execution != null &&
+    !(Number.isInteger(execution.maxSteps) && execution.maxSteps > 0)
+  ) {
+    throw new Error("execution.maxSteps must be a positive integer");
+  }
+
+  return {
+    model: provider(request.modelId),
+    messages: request.messages.map(toModelMessage),
+    ...(request.maxOutputTokens != null
+      ? { maxOutputTokens: request.maxOutputTokens }
+      : {}),
+    ...(request.abortSignal != null
+      ? { abortSignal: request.abortSignal }
+      : {}),
+    ...(execution != null
+      ? { tools: execution.tools, stopWhen: isStepCount(execution.maxSteps) }
+      : {}),
+  };
+}
+
+function toModelMessage({ cacheAfter, ...message }: LlmMessage): ModelMessage {
+  if (cacheAfter == null) {
+    return message;
+  }
+
+  return {
+    ...message,
+    providerOptions: {
+      ...message.providerOptions,
+      bedrock: {
+        ...message.providerOptions?.bedrock,
+        cachePoint: { type: "default", ttl: cacheAfter.ttl },
+      },
+    },
+  };
+}
+
+type StreamResult = {
+  usage: PromiseLike<LanguageModelUsage>;
+  finishReason: PromiseLike<FinishReason>;
+  warnings: PromiseLike<CallWarning[] | undefined>;
+};
+
+async function finish<Output>(
+  result: StreamResult,
+  output: PromiseLike<Output>,
+): Promise<GenerationResult<Output>> {
+  const [resolvedOutput, usage, finishReason, warnings] = await Promise.all([
+    output,
+    result.usage,
+    result.finishReason,
+    result.warnings,
+  ]);
+  reportWarnings(warnings);
+  return { output: resolvedOutput, usage, finishReason };
+}
+
+function reportWarnings(warnings: CallWarning[] | undefined) {
+  // Unsupported settings, such as a cache point the model ignores, arrive as warnings.
+  if (warnings != null && warnings.length > 0) {
+    console.warn("[bedrock-llm]", warnings);
+  }
+}
+```
+
+providerの警告の出力先は決めていない。例では`console.warn`へ出しているので、ログの方針が決まったらそれに合わせる。
 
 ## 参考
 
