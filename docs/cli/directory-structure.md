@@ -24,7 +24,7 @@ src/
 ```ts
 import { z } from "zod";
 import { createFileReader } from "../adapters/file-reader.js";
-import { summarize } from "../usecases/summarize.js";
+import { summarizeDocument } from "../usecases/document/summarize.js";
 
 const env = z.object({
   INPUT_ROOT: z.string().min(1),
@@ -34,7 +34,7 @@ const deps = {
   fileReader: createFileReader({ root: env.INPUT_ROOT }),
 };
 
-const result = await summarize({
+const result = await summarizeDocument({
   deps,
   input: { path: "input.txt" },
 });
@@ -70,7 +70,7 @@ runMain(defineCommand({
 import { defineCommand } from "citty";
 import { z } from "zod";
 import { createFileReader } from "../../adapters/file-reader.js";
-import { summarize } from "../../usecases/summarize.js";
+import { summarizeDocument } from "../../usecases/document/summarize.js";
 
 export default defineCommand({
   args: {
@@ -83,7 +83,7 @@ export default defineCommand({
     const deps = {
       fileReader: createFileReader({ root: env.INPUT_ROOT }),
     };
-    const result = await summarize({ deps, input: { path: args.path } });
+    const result = await summarizeDocument({ deps, input: { path: args.path } });
     console.log(result);
   },
 });

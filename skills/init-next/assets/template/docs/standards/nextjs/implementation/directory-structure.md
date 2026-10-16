@@ -29,6 +29,8 @@ src/
     generated/
   queries/
   usecases/
+    connection/
+      create.ts
   domain/
   ports/
   adapters/

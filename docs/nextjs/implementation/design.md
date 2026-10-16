@@ -62,51 +62,74 @@ import { theme } from "./_helpers/theme";
 bodyの背景色は変更しない。Navbarなど既定の背景色を使う面まで同じ色になるため、グレーにする領域へ個別に指定する。
 本文の中身を`Paper`へ載せるかは画面ごとに判断する。
 
-## ページの見出し
+## ページの枠
 
-`src/components/page-header.tsx`：
+認証済みの画面は`PageFrame`で囲む。本文領域の上端に、端から端まで通る高さ56pxの白いバーを置き、タイトルを左、操作ボタンを右に並べる。
+バーは1pxの下線だけで本文と区切り、スクロールしても上に残る。Navbar・バー・本文の3面を、影や余白ではなく1pxの線で分ける。
+
+`src/components/page-frame.tsx`：
 
 ```tsx
-import { Stack, Text, Title } from "@mantine/core";
+import { Title } from "@mantine/core";
+import type { ReactNode } from "react";
+import classes from "./page-frame.module.css";
 
 type Props = {
   title: string;
-  description?: string;
+  actions?: ReactNode;
+  children?: ReactNode;
 };
 
-export function PageHeader({ title, description }: Props) {
+// A flush, sticky title bar over the grey content area; both are separated by 1px lines only.
+export function PageFrame({ title, actions, children }: Props) {
   return (
-    <Stack gap={4} mb="lg">
-      <Title>{title}</Title>
-      {description != null && (
-        <Text c="dimmed" fz="sm">
-          {description}
-        </Text>
-      )}
-    </Stack>
+    <>
+      <header className={classes.header}>
+        <Title order={1}>{title}</Title>
+        {actions}
+      </header>
+      <div className={classes.body}>{children}</div>
+    </>
   );
 }
 ```
 
-認証済みの画面は、タイトルと補足の1行をこのコンポーネントで表示して書き出しを揃える。補足が不要な画面では`description`を省略する。
+`src/components/page-frame.module.css`：
+
+```css
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-md);
+  min-height: 56px;
+  padding: 0 var(--mantine-spacing-md);
+  background-color: var(--mantine-color-body);
+  border-bottom: 1px solid var(--mantine-color-default-border);
+}
+
+.body {
+  padding: var(--mantine-spacing-md);
+}
+```
+
+バーを端まで通すため、[共通レイアウト](layout.md#レイアウト本体)の`AppShell`は`padding={0}`にし、本文の余白は`PageFrame`の`body`で付ける。
+バーはタイトルと操作ボタンだけの1行に保つ。ページの説明文は置かない。タイトルの言い換えになりがちで、情報を足さないため。
+操作ボタンは`actions`に渡す。Server Componentから`Button`に`Link`を渡せないため、リンクのボタンはClient Componentの`LinkButton`（`src/components/link-button.tsx`）にまとめる。
 
 ```tsx
 import { getTranslations } from "next-intl/server";
 import { requireSession } from "@/auth/server";
-import { PageHeader } from "@/components/page-header";
+import { PageFrame } from "@/components/page-frame";
 
 export default async function Page() {
-  const session = await requireSession();
+  await requireSession();
   const translate = await getTranslations();
 
-  return (
-    <PageHeader
-      title={translate("pages.home.title")}
-      description={translate("pages.home.greeting", {
-        name: session.user.name,
-      })}
-    />
-  );
+  return <PageFrame title={translate("pages.home.title")} />;
 }
 ```
 
@@ -171,7 +194,7 @@ export default async function Page() {
     <Center mih="100dvh" bg="gray.0" p="md">
       <Paper withBorder shadow="sm" p="xl" w="100%" maw={400}>
         <Stack gap="lg">
-          <AppLogo name={translate("pages.shared.appName")} />
+          <AppLogo name={translate("app.name")} />
           <AuthForm />
         </Stack>
       </Paper>

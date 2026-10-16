@@ -62,7 +62,7 @@ export function AppLayout({ appName, navigation, userMenu, children }: Props) {
   return (
     // The navbar stays beside the content at every width: there is no header
     // to hold a toggle for a collapsed navbar.
-    <AppShell navbar={{ width: 240, breakpoint: 0 }} padding="md">
+    <AppShell navbar={{ width: 240, breakpoint: 0 }} padding={0}>
       <AppShellNavbar p="xs">
         <AppShellSection p="xs">
           <AppLogo name={appName} />
@@ -87,7 +87,7 @@ export function AppLayout({ appName, navigation, userMenu, children }: Props) {
 `breakpoint: 0`で、画面幅によらずNavbarを本文の横に表示する。AppShellはbreakpoint未満でNavbarを全幅の開閉式に切り替えるが、ヘッダーがなく開閉ボタンを置く場所がないため、切り替えを使わない。
 狭い画面への対応が必要になったら、開閉ボタンの置き場所と合わせて設計する。
 
-本文の余白は`AppShell`の`padding`で指定する。各領域の位置計算にも使われるため、`AppShellMain`へ直接指定しない。
+`AppShell`の`padding`は0にし、本文の余白は[ページの枠](design.md#ページの枠)が付ける。`AppShellMain`へ直接余白を指定しない。
 
 ## リンク
 
@@ -238,7 +238,7 @@ export default async function Layout({ children }: LayoutProps<"/">) {
 
   return (
     <AppLayout
-      appName={translate("pages.shared.appName")}
+      appName={translate("app.name")}
       navigation={[
         {
           href: "/",
@@ -249,7 +249,7 @@ export default async function Layout({ children }: LayoutProps<"/">) {
       userMenu={
         <AccountMenu
           user={{ name: session.user.name, email: session.user.email }}
-          labels={{ signOut: translate("pages.shared.signOut") }}
+          labels={{ signOut: translate("actions.signOut") }}
         />
       }
     >
@@ -260,7 +260,7 @@ export default async function Layout({ children }: LayoutProps<"/">) {
 ```
 
 画面を追加したら、`navigation`へリンクを足す。リンクの文言には、その画面の`pages.<ページ名>.title`を使う。
-アプリ名・ログアウトなど特定の画面に属さない文言は、[`pages.shared`](i18n.md#キーの分類と命名)に定義する。
+アプリ名は`app.name`、ログアウトは`actions.signOut`に定義する（[キーの分類](i18n.md#キーの分類と命名)）。
 
 layoutでセッションを取得するのは、ユーザー名の表示と未認証時のリダイレクトのため。
 layoutは画面遷移のたびに再実行されるとは限らないため、[各ページ・Server Actionでも確認する](better-auth.md#セッション)。

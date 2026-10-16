@@ -16,7 +16,7 @@ export default async function Page() {
     <Center mih="100dvh" bg="gray.0" p="md">
       <Paper withBorder shadow="sm" p="xl" w="100%" maw={400}>
         <Stack gap="lg">
-          <AppLogo name={translate("pages.shared.appName")} />
+          <AppLogo name={translate("app.name")} />
           <AuthForm />
         </Stack>
       </Paper>

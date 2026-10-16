@@ -34,7 +34,7 @@ export function AuthForm() {
           const result = await authClient.signIn.email(values);
           if (result.error != null) {
             form.setError("root", {
-              message: translate("pages.signIn.failed"),
+              message: translate("errors.invalidCredentials"),
             });
             return;
           }
@@ -42,7 +42,7 @@ export function AuthForm() {
           router.refresh();
         } catch {
           form.setError("root", {
-            message: translate("pages.signIn.failed"),
+            message: translate("errors.invalidCredentials"),
           });
         }
       })}
@@ -55,7 +55,7 @@ export function AuthForm() {
             <TextInput
               {...field}
               type="email"
-              label={translate("models.user.email")}
+              label={translate("models.user.fields.email")}
               autoComplete="email"
               error={fieldState.error?.message}
             />
@@ -67,7 +67,7 @@ export function AuthForm() {
           render={({ field, fieldState }) => (
             <PasswordInput
               {...field}
-              label={translate("models.user.password")}
+              label={translate("models.user.fields.password")}
               autoComplete="current-password"
               error={fieldState.error?.message}
             />
@@ -80,7 +80,7 @@ export function AuthForm() {
           </Alert>
         )}
         <Button type="submit" loading={form.formState.isSubmitting}>
-          {translate("pages.signIn.submit")}
+          {translate("actions.signIn")}
         </Button>
       </Stack>
     </form>

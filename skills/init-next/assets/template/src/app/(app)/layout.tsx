@@ -10,7 +10,7 @@ export default async function Layout({ children }: LayoutProps<"/">) {
 
   return (
     <AppLayout
-      appName={translate("pages.shared.appName")}
+      appName={translate("app.name")}
       navigation={[
         {
           href: "/",
@@ -21,7 +21,7 @@ export default async function Layout({ children }: LayoutProps<"/">) {
       userMenu={
         <AccountMenu
           user={{ name: session.user.name, email: session.user.email }}
-          labels={{ signOut: translate("pages.shared.signOut") }}
+          labels={{ signOut: translate("actions.signOut") }}
         />
       }
     >

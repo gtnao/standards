@@ -1,27 +1,31 @@
 {
+  "app": {
+    "name": "__PROJECT_NAME__"
+  },
   "validation": {
     "required": "入力してください",
     "invalid": "入力内容を確認してください",
     "invalidEmail": "有効なメールアドレスを入力してください"
   },
+  "actions": {
+    "signIn": "ログイン",
+    "signOut": "ログアウト"
+  },
+  "errors": {
+    "invalidCredentials": "メールアドレスまたはパスワードが正しくありません"
+  },
   "models": {
     "user": {
-      "email": "メールアドレス",
-      "password": "パスワード"
+      "name": "ユーザー",
+      "fields": {
+        "email": "メールアドレス",
+        "password": "パスワード"
+      }
     }
   },
   "pages": {
-    "shared": {
-      "appName": "__PROJECT_NAME__",
-      "signOut": "ログアウト"
-    },
     "home": {
-      "title": "ホーム",
-      "greeting": "こんにちは、{name}さん"
-    },
-    "signIn": {
-      "submit": "ログイン",
-      "failed": "メールアドレスまたはパスワードが正しくありません"
+      "title": "ホーム"
     }
   }
 }

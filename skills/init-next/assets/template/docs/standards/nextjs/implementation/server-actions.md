@@ -108,7 +108,7 @@ import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { z } from "zod";
 import { getSession } from "@/auth/server";
-import { publishPost } from "@/usecases/publish-post";
+import { publishPost } from "@/usecases/post/publish";
 import type { ServerActionResult } from "@/app/_helpers/server-action-result";
 
 type Args = { postId: string };
@@ -121,7 +121,7 @@ export async function publishPostAction(
   if (session == null) {
     return {
       success: false,
-      error: { message: translate("pages.posts.authenticationRequired") },
+      error: { message: translate("errors.authenticationRequired") },
     };
   }
 
@@ -152,9 +152,11 @@ export async function publishPostAction(
 
 ```json
 {
+  "errors": {
+    "authenticationRequired": "ログインしてください"
+  },
   "pages": {
     "posts": {
-      "authenticationRequired": "ログインしてください",
       "cannotPublish": "この投稿は公開できません"
     }
   },

@@ -52,7 +52,7 @@ entrypointは両方を利用できるが、usecaseがadapterの設定型を参�
 ```ts
 import { z } from "zod";
 import { createFileReader } from "../adapters/file-reader.js";
-import { summarize } from "../usecases/summarize.js";
+import { summarizeDocument } from "../usecases/document/summarize.js";
 
 const env = z.object({
   INPUT_ROOT: z.string().min(1),
@@ -62,7 +62,7 @@ const deps = {
   fileReader: createFileReader({ root: env.INPUT_ROOT }),
 };
 
-const result = await summarize({
+const result = await summarizeDocument({
   deps,
   input: { path: "input.txt" },
 });
@@ -98,7 +98,7 @@ runMain(defineCommand({
 import { defineCommand } from "citty";
 import { z } from "zod";
 import { createFileReader } from "../../adapters/file-reader.js";
-import { summarize } from "../../usecases/summarize.js";
+import { summarizeDocument } from "../../usecases/document/summarize.js";
 
 export default defineCommand({
   args: {
@@ -111,7 +111,7 @@ export default defineCommand({
     const deps = {
       fileReader: createFileReader({ root: env.INPUT_ROOT }),
     };
-    const result = await summarize({ deps, input: { path: args.path } });
+    const result = await summarizeDocument({ deps, input: { path: args.path } });
     console.log(result);
   },
 });
@@ -122,7 +122,9 @@ export default defineCommand({
 
 ## usecases
 
-処理を表す動詞で命名し、主となる関数単位でファイルを分ける。
+操作の対象ごとにディレクトリを分け、ファイルは処理を表す動詞で命名する（`usecases/connection/create.ts`）。
+関数名は動詞に対象を続ける（`createConnection`）。対象はPrismaのモデルやdomainの概念の名前で、対象が増えてもファイルを平らに並べない。
+主となる関数単位でファイルを分ける。
 処理単位の関数にし、必要な依存を`deps`、今回の処理に渡す値を`input`として受け取る。
 ファイル内に`Args`を定義し、`deps`と`input`が一目で分かる形にする。外部から直接参照する必要がなければexportしない。
 
@@ -145,7 +147,7 @@ type Args = {
 
 domainの処理と外部機能の呼び出しを組み合わせ、順序・分岐・並行実行を決める。他のusecaseを呼んで組み立ててもよい。
 
-`usecases/summarize.ts`の例：
+`usecases/document/summarize.ts`の例：
 
 ```ts
 import { summarizeText } from "../domain/summary.js";
@@ -156,7 +158,7 @@ type Args = {
   input: { path: string };
 };
 
-export const summarize = async ({ deps, input }: Args) => {
+export const summarizeDocument = async ({ deps, input }: Args) => {
   const text = await deps.fileReader.read(input.path);
   return summarizeText(text);
 };
@@ -200,7 +202,7 @@ const fileReader: FileReader = {
   read: async () => "テスト用の入力",
 };
 
-const result = await summarize({
+const result = await summarizeDocument({
   deps: { fileReader },
   input: { path: "example.txt" },
 });

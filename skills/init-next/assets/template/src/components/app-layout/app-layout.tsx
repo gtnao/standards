@@ -19,7 +19,7 @@ export function AppLayout({ appName, navigation, userMenu, children }: Props) {
   return (
     // The navbar stays beside the content at every width: there is no header
     // to hold a toggle for a collapsed navbar.
-    <AppShell navbar={{ width: 240, breakpoint: 0 }} padding="md">
+    <AppShell navbar={{ width: 240, breakpoint: 0 }} padding={0}>
       <AppShellNavbar p="xs">
         <AppShellSection p="xs">
           <AppLogo name={appName} />

@@ -102,7 +102,7 @@ export function AuthForm() {
           const result = await authClient.signIn.email(values);
           if (result.error != null) {
             form.setError("root", {
-              message: translate("pages.signIn.failed"),
+              message: translate("errors.invalidCredentials"),
             });
             return;
           }
@@ -110,7 +110,7 @@ export function AuthForm() {
           router.refresh();
         } catch {
           form.setError("root", {
-            message: translate("pages.signIn.failed"),
+            message: translate("errors.invalidCredentials"),
           });
         }
       })}
@@ -123,7 +123,7 @@ export function AuthForm() {
             <TextInput
               {...field}
               type="email"
-              label={translate("models.user.email")}
+              label={translate("models.user.fields.email")}
               autoComplete="email"
               error={fieldState.error?.message}
             />
@@ -135,7 +135,7 @@ export function AuthForm() {
           render={({ field, fieldState }) => (
             <PasswordInput
               {...field}
-              label={translate("models.user.password")}
+              label={translate("models.user.fields.password")}
               autoComplete="current-password"
               error={fieldState.error?.message}
             />
@@ -148,7 +148,7 @@ export function AuthForm() {
           </Alert>
         )}
         <Button type="submit" loading={form.formState.isSubmitting}>
-          {translate("pages.signIn.submit")}
+          {translate("actions.signIn")}
         </Button>
       </Stack>
     </form>
@@ -176,7 +176,7 @@ export default async function Page() {
     <Center mih="100dvh" bg="gray.0" p="md">
       <Paper withBorder shadow="sm" p="xl" w="100%" maw={400}>
         <Stack gap="lg">
-          <AppLogo name={translate("pages.shared.appName")} />
+          <AppLogo name={translate("app.name")} />
           <AuthForm />
         </Stack>
       </Paper>
@@ -185,20 +185,23 @@ export default async function Page() {
 }
 ```
 
-`messages/ja.json`では、画面固有の文言を`pages.signIn`、ユーザーの項目名を`models.user`、共通の入力検証メッセージを`validation`に置く。翻訳関数は`translate`とし、名前空間を指定せず完全なキーで参照する。
+`messages/ja.json`では、ログインの操作を`actions.signIn`、失敗の文言を`errors.invalidCredentials`、ユーザーの項目名を`models.user.fields`、共通の入力検証メッセージを`validation`に置く。ログイン画面に固有の文言はない。翻訳関数は`translate`とし、名前空間を指定せず完全なキーで参照する。
 
 ```json
 {
-  "pages": {
-    "signIn": {
-      "submit": "ログイン",
-      "failed": "メールアドレスまたはパスワードが正しくありません"
-    }
+  "actions": {
+    "signIn": "ログイン"
+  },
+  "errors": {
+    "invalidCredentials": "メールアドレスまたはパスワードが正しくありません"
   },
   "models": {
     "user": {
-      "email": "メールアドレス",
-      "password": "パスワード"
+      "name": "ユーザー",
+      "fields": {
+        "email": "メールアドレス",
+        "password": "パスワード"
+      }
     }
   },
   "validation": {

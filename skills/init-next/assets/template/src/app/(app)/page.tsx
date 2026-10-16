@@ -1,17 +1,10 @@
 import { getTranslations } from "next-intl/server";
 import { requireSession } from "@/auth/server";
-import { PageHeader } from "@/components/page-header";
+import { PageFrame } from "@/components/page-frame";
 
 export default async function Page() {
-  const session = await requireSession();
+  await requireSession();
   const translate = await getTranslations();
 
-  return (
-    <PageHeader
-      title={translate("pages.home.title")}
-      description={translate("pages.home.greeting", {
-        name: session.user.name,
-      })}
-    />
-  );
+  return <PageFrame title={translate("pages.home.title")} />;
 }

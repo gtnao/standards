@@ -126,7 +126,7 @@ pageでは`await loadSearch(searchParams)`を検索関数へ渡す。認証・�
 ## URL更新と検索の実行
 
 `src/components/data-table/use-table-search.ts`に`useQueryStates`との接続をまとめる。
-共通の検索キーは`q`・`sort`・`direction`・`page`とし、固有のフィルターはparserに追加する。
+共通の検索キーは`sort`・`direction`・`page`とし、テキスト検索がある一覧だけ`q`を定義する。固有のフィルターはparserに追加する。
 型は受け取ったparserから導出し、ソートキーや固有フィルターの型を`string`・`unknown`へ広げない。
 共通hookの引数は`useTableSearch(searchParsers, appliedSearch, result.pagination.pageSize)`とする。
 `appliedSearch`にも同じparserから得た型を使い、別画面の検索条件を受け付けない。
@@ -168,7 +168,7 @@ function updateFilters(
 }
 ```
 
-共通hookは`search`・`submitSearch`・`updateFilters`と、Tableに渡す`pagination`・`sorting`・`onPaginationChange`・`onSortingChange`・`updating`を返す。
+共通hookは`search`・`submitSearch`・`updateFilters`と、Tableに渡す`pagination`・`sorting`・`onPaginationChange`・`onSortingChange`・`updating`をまとめた`table`を返す。`table`はそのまま`DataTable`へ展開するため、他の値を混ぜない。`q`のない一覧では`submitSearch`は何もしない。
 `updateFilters`の型から`q`・`sort`・`direction`・`page`を除き、固有フィルターだけを受け付ける。
 nuqsの型は`Values<typeof searchParsers>`から導出し、例えば`status`の許可値や数値フィルターの型をそのまま維持する。
 フィルター・ソートを更新するときは、変更するキーと`page: 1`だけを渡す。
@@ -246,7 +246,7 @@ const columnHelper = createColumnHelper<typeof dataTableFeatures, ItemSummary>()
 ```
 
 Client Component内で`columnHelper.columns([...])`に列を定義する。
-例えば名前の列は`columnHelper.accessor("name", { header: translate("models.item.name") })`とする。
+例えば名前の列は`columnHelper.accessor("name", { header: translate("models.item.fields.name") })`とする。
 ソート対象の列IDは検索条件と揃え、対象外の列には`enableSorting: false`を指定する。
 セルのリンク・バッジ・行操作も、このページの列定義に含める。
 
@@ -266,13 +266,15 @@ Client Component内で`columnHelper.columns([...])`に列を定義する。
 ページ側の組み立ては次の形になる。`columns`と固有フィルターだけが対象に応じて変わる。
 
 ```tsx
-const { search, submitSearch, updateFilters, ...tableState } =
+const { search, submitSearch, updateFilters, table } =
   useTableSearch(searchParsers, appliedSearch, result.pagination.pageSize);
 
 <SearchInput
   value={search.q}
-  label={translate("pages.items.search")}
-  submitLabel={translate("pages.items.submitSearch")}
+  label={translate("components.searchInput.label", {
+    field: translate("models.item.fields.name"),
+  })}
+  submitLabel={translate("actions.search")}
   maxLength={searchTextMaxLength}
   onSearch={submitSearch}
 />
@@ -282,18 +284,22 @@ const { search, submitSearch, updateFilters, ...tableState } =
   columns={columns}
   getRowId={(row) => String(row.id)}
   rowCount={result.pagination.totalItems}
-  {...tableState}
+  {...table}
   emptyContent={
     <EmptyContent
-      title={translate("pages.items.empty")}
-      description={translate("pages.items.emptyDescription")}
+      title={translate("components.emptyContent.title", {
+        name: translate("models.item.name"),
+      })}
+      description={translate("components.emptyContent.description", {
+        name: translate("models.item.name"),
+      })}
     />
   }
   labels={{
-    pagination: translate("pages.items.pagination"),
-    page: page => translate("pages.items.page", { page }),
-    previous: translate("pages.items.previousPage"),
-    next: translate("pages.items.nextPage"),
+    pagination: translate("components.dataTable.pagination"),
+    page: page => translate("components.dataTable.page", { page }),
+    previous: translate("components.dataTable.previous"),
+    next: translate("components.dataTable.next"),
   }}
 />
 ```
@@ -360,7 +366,7 @@ Tableの型は`@tanstack/react-table`、`ReactNode`は`react`からimportする�
 ```
 
 総ページ数が1以下ならページ操作を表示しない。再取得中は操作を無効化する。
-`labels.page`は`translate("pages.items.page", { page })`を呼ぶ関数として渡し、メッセージは`{page, number}ページ目`のように定義する。
+`labels.page`は`translate("components.dataTable.page", { page })`を呼ぶ関数として渡し、メッセージは`{page, number}ページ目`のように定義する。`DataTable`の`labels`は`components.dataTable`のキーと1対1にする。
 
 0件の場合は、表の代わりに`emptyContent`を表示する。呼び出し側で共通の`EmptyContent`を組み立て、画面に合った見出し・説明を渡す。
 `src/components/empty-content.tsx`：
